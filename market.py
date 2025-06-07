@@ -2,7 +2,8 @@ import pygame as pg
 from params import *
 
 class pointCityMarket:
-	def __init__(self, cards):
+	def __init__(self, screen, cards):
+		self.screen = screen
 		self.cards = cards
 		self.cardPos = []
 		self.selectedCards = []
@@ -54,13 +55,13 @@ class pointCityMarket:
 		return False
 
 	# renvoie la liste des cartes sélectionnées
-	def selectCard(self, screen, mousePos):
+	def selectCard(self, mousePos):
 		(i,j) = self.findCard(mousePos)
 		if i == -1:
 			return []
 		if len(self.selectedCards) == 0:
 			self.selectedCards.append((i,j))
-			self.drawSingleCard(screen, (i,j), blue)
+			self.drawSingleCard((i,j), blue)
 			self.adjCards = self.findAdjacent(i,j)
 			return self.selectedCards
 		elif len(self.selectedCards) == 1:
@@ -73,8 +74,8 @@ class pointCityMarket:
 			else:
 				return self.selectedCards
 
-	def cancelSelect(self, screen):
-		self.drawSingleCard(screen, self.selectedCards[0], backgroundColor)
+	def cancelSelect(self):
+		self.drawSingleCard(self.selectedCards[0], backgroundColor)
 		self.selectedCards = []
 		self.adjCards = []
 
@@ -107,32 +108,32 @@ class pointCityMarket:
 					return True
 		return False
 
-	def draw(self, screen, gamePhase):
+	def draw(self, gamePhase):
 		(x,y) = self.findCard(pg.mouse.get_pos())
-		screen.fill(backgroundColor, marketBackgroundRect)
+		self.screen.fill(backgroundColor, marketBackgroundRect)
 		match gamePhase:
 			case GPhase.DISCOVER:
 				for i in range(4):
 					for j in range(4):
 						if self.cards[i][j].canFlip:
-							screen.fill(green, self.highlightRects[i][j])
+							self.screen.fill(green, self.highlightRects[i][j])
 				if x != -1 and self.cards[x][y].canFlip:
-					screen.fill(white, self.highlightRects[x][y])
+					self.screen.fill(white, self.highlightRects[x][y])
 			case GPhase.MARKET:
 				if len(self.selectedCards) == 1:
 					(i,j) = self.selectedCards[0]
-					screen.fill(blue, self.highlightRects[i][j])
+					self.screen.fill(blue, self.highlightRects[i][j])
 					if (x,y) in self.adjCards:
-						screen.fill(white, self.highlightRects[x][y])
+						self.screen.fill(white, self.highlightRects[x][y])
 				elif x != -1:
-					screen.fill(white, self.highlightRects[x][y])
+					self.screen.fill(white, self.highlightRects[x][y])
 
 		for i in range(4):
 			for j in range(4):
 				if self.cards[i][j] != None:
-					self.cards[i][j].draw(screen, self.cardPos[i][j])
+					self.cards[i][j].draw(self.cardPos[i][j])
 
-	def lazyDraw(self, screen, gamePhase):
+	def lazyDraw(self, gamePhase):
 		(x,y) = self.findCard(pg.mouse.get_pos())
 		(a,b) = self.lastMousePos
 		if (x,y) == (a,b):
@@ -140,21 +141,21 @@ class pointCityMarket:
 		match gamePhase:
 			case GPhase.DISCOVER:
 				if x != -1:
-					self.drawSingleCard(screen, (x,y), white)
+					self.drawSingleCard((x,y), white)
 				if a != -1:
-					self.drawSingleCard(screen, (a,b), green if self.cards[a][b].canFlip else backgroundColor)
+					self.drawSingleCard((a,b), green if self.cards[a][b].canFlip else backgroundColor)
 			case GPhase.MARKET:
 				if len(self.selectedCards) == 1:
 					if (x,y) in self.adjCards:
-						self.drawSingleCard(screen, (x,y), white)
+						self.drawSingleCard((x,y), white)
 				elif x != -1:
-					self.drawSingleCard(screen, (x,y), white)
+					self.drawSingleCard((x,y), white)
 				if a != -1:
 					if len(self.selectedCards) != 1 or self.selectedCards[0] != (a,b):
-						self.drawSingleCard(screen, (a,b), backgroundColor)
+						self.drawSingleCard((a,b), backgroundColor)
 		self.lastMousePos = (x,y)
 
-	def drawSingleCard(self, screen, card, color):
+	def drawSingleCard(self, card, color):
 		(i,j) = card
-		screen.fill(color, self.highlightRects[i][j])
-		self.cards[i][j].draw(screen, self.cardPos[i][j])
+		self.screen.fill(color, self.highlightRects[i][j])
+		self.cards[i][j].draw(self.cardPos[i][j])

@@ -25,7 +25,7 @@ def main():
 				case pg.QUIT: sys.exit()
 				case pg.MOUSEBUTTONDOWN:
 					if event.button == 1:
-						PCGame.leftClick(screen, pg.mouse.get_pos())
+						PCGame.leftClick(pg.mouse.get_pos())
 						# 			sys.exit()
 						# 		elif ES.clickRestart():
 						# 			# reset game
@@ -34,10 +34,10 @@ def main():
 				case pg.KEYDOWN:
 					match event.key:
 						case pg.K_ESCAPE:
-							PCGame.pressEscape(screen)
+							PCGame.pressEscape()
 						case pg.K_RETURN:
 							sys.exit()
-		PCGame.draw(screen)
+		PCGame.draw()
 		pg.display.flip()
 
 if __name__ == '__main__':

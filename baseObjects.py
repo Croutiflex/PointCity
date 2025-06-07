@@ -2,8 +2,9 @@ import pygame as pg
 from params import *
 
 class pointCityCard:
-	def __init__(self, tier, ressource, type, cost, value, imageBat):
+	def __init__(self, screen, tier, ressource, type, cost, value, imageBat):
 		# constant
+		self.screen = screen
 		self.tier = tier
 		self.ressource = ressource
 		self.type = type # type de batiment
@@ -32,12 +33,13 @@ class pointCityCard:
 		self.imageBat = pg.transform.scale(self.imageBat, size)
 		self.imageRes = pg.transform.scale(self.imageRes, size)
 
-	def draw(self, screen, pos):
-		screen.blit(self.getImage(), pos)
+	def draw(self, pos):
+		self.screen.blit(self.getImage(), pos)
 
 
 class pointCityToken:
-	def __init__(self, type, info, image):
+	def __init__(self, screen, type, info, image):
+		self.screen = screen
 		self.type = type
 		self.info = info
 		self.image = jetons[image]
@@ -45,5 +47,5 @@ class pointCityToken:
 	def resize(self, size):
 		self.image = pg.transform.scale(self.image, size)
 
-	def draw(self, screen, pos):
-		screen.blit(self.image, pos)
+	def draw(self, pos):
+		self.screen.blit(self.image, pos)

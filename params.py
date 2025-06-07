@@ -57,9 +57,9 @@ cardSize = (cardL, cardH)
 marketPos = (space3, space3)
 piochePos = (space3*2 + cardL*4 + space2*3, space3)
 tkMarketPos = (piochePos[0], piochePos[1] + cardSize[1] + space2)
-tokenSize = (screenSize[1]-2*space3-space2-4*space1-cardH)/5
+tokenSize = (screenSize[1]-2*space3-space2-6*space1-cardH)/7
 TKR = space1 + tokenSize/2
-PIx = piochePos[0] + tokenSize*3 + space1*2 + space3
+PIx = piochePos[0] + tokenSize*2 + space1 + space3
 PIL = screenSize[0] - PIx - space3
 PIH = (screenSize[1] - 2*space3)/2 - space2
 PIh = ((screenSize[1] - 2*space3)/2 - 3*space2)/3
@@ -67,15 +67,16 @@ PIRect = [pg.Rect((PIx, space3), (PIL, PIH))]
 PIRect += [pg.Rect((PIx, PIH + space3 + space2 + i*(PIh + space2)), (PIL, PIh)) for i in range(3)]
 # fonds par zones
 marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
-PIBackgroundRect = pg.Rect((piochePos[0], 0), (screenSize[0] - PIx, screenSize[1]))
+PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, screenSize[1]))
 # inventaire détaillé
-tokenSize2 = (PIL/4 + space1*2)/2
+tokenSize2 = (PIL/5 + space1*2)/2
 tokenPosLX = (PIx + space1, PIx + space1 + tokenSize2)
 tokenPosLY = 2*space3
 handPosL = (tokenPosLX[1] + tokenSize2 + space1, space3 + space1)
-cardH2 = (PIH - 2*space1 - space2)/3
+cardH2 = (PIH - 2*space1 - space2)/2.5
 cardSize2 = (cardH2*cardRatio, cardH2)
-cityPosL = (handPosL[0], cardH2 + space1 + space2)
+cityPosL = [(handPosL[0], handPosL[1] + cardH2 + space2)]
+cityPosL += [(cityPosL[0][0] + i*(cardSize2[0] + space2), cityPosL[0][1]) for i in range(1,5)]
 
 ## TIMING
 translationTime = 30

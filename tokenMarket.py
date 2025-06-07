@@ -3,16 +3,18 @@ import pygame as pg
 import math
 
 class pointCityTokenMarket:
-	def __init__(self, tokens):
+	def __init__(self, screen, tokens):
+		self.screen = screen
 		self.tokens = tokens
 		self.tokenPos = []
 		self.tokenCenter = []
+		self.lastMousePos = -1
 		(x,y) = tkMarketPos
 		r = tokenSize/2
 		for j in range(len(tokens)):
 			self.tokenPos.append((x,y))
 			self.tokenCenter.append((x+r,y+r))
-			if j == 4 or j == 9:
+			if j == 6:
 				x += 2*r + space1
 				y = tkMarketPos[1]
 			else:
@@ -28,12 +30,29 @@ class pointCityTokenMarket:
 		i = self.findToken(mousePos)
 		if i == -1:
 			return None
-		return self.tokens.pop(i)
+		ret = self.tokens.pop(i)
+		self.draw(False)
+		return ret
 
-	def draw(self, screen, isTokenPhase):
+	def draw(self, isTokenPhase):
 		if isTokenPhase:
 			i = self.findToken(pg.mouse.get_pos())
 			if i != -1:
-				pg.draw.circle(screen, white, self.tokenCenter[i], TKR)
+				pg.draw.circle(self.screen, white, self.tokenCenter[i], TKR)
 		for i in range(len(self.tokens)):
-			self.tokens[i].draw(screen, self.tokenPos[i])
+			self.tokens[i].draw(self.tokenPos[i])
+
+	def lazyDraw(self, isTokenPhase):
+		if not isTokenPhase:
+			return
+		x = self.findToken(pg.mouse.get_pos())
+		y = self.lastMousePos
+		if x == y:
+			return
+		if x != -1:
+			pg.draw.circle(self.screen, white, self.tokenCenter[x], TKR)
+			self.tokens[x].draw(self.tokenPos[x])
+		if y != -1 and y < len(self.tokens):
+			pg.draw.circle(self.screen, backgroundColor, self.tokenCenter[y], TKR)
+			self.tokens[y].draw(self.tokenPos[y])
+		self.lastMousePos = x

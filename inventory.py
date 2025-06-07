@@ -3,16 +3,18 @@ import pygame as pg
 from baseObjects import *
 
 class pointCityPlayerInventory:
-	def __init__(self, Id):
-		card = pointCityCard(0, INGENIEUR, 'ressource', 0, 0, 0)
+	def __init__(self, screen, Id):
+		self.screen = screen
+		card = pointCityCard(screen, 0, INGENIEUR, 'ressource', 0, 0, 0)
 		card.imageRes = pg.transform.scale(card.imageRes, cardSize2)
 		self.resCards = [card]
-		self.batCards = []
+		self.batCards = [[] for i in range(5)]
 		self.tokens = []
 		self.id = Id
 		self.pos = Id
 		self.tokenPosL = [(tokenPosLX[i], tokenPosLY) for i in range(2)]
 		self.handPosL = [handPosL]
+		self.cityPosL = [[] for i in range(5)]
 		self.hasRecentlyChanged = False
 
 	def endTurn(self, n):
@@ -30,9 +32,15 @@ class pointCityPlayerInventory:
 			else:
 				self.tokenPosL.append((self.tokenPosL[L-3][0], self.tokenPosL[L-3][1] + tokenSize2 + space1))
 
+	def addCard(self, card):
+		card.resize(cardSize2)
+		if card.side == RESSOURCE:
+			self.addResCard(card)
+		else:
+			self.addBatCard(card)
+
 	def addResCard(self, card):
 		self.hasRecentlyChanged = True
-		card.imageRes = pg.transform.scale(card.imageRes, cardSize2)
 		self.resCards.append(card)
 		self.handPosL = []
 		(x,y) = handPosL
@@ -41,22 +49,37 @@ class pointCityPlayerInventory:
 			self.handPosL.append((x,y))
 			x += space
 
-	def draw(self, screen):
-		screen.fill(playerColors[self.id], PIRect[self.pos])
+	def addBatCard(self, card):
+		self.hasRecentlyChanged = True
+		if card.type == "ressource":
+			self.batCards[card.ressource].append(card)
+			if len(self.cityPosL[card.ressource]) == 0:
+				self.cityPosL[card.ressource].append(cityPosL[card.ressource])
+			else:
+				space = space3
+				(x,y) = self.cityPosL[card.ressource][-1]
+				self.cityPosL[card.ressource].append((x, y + space))
+
+	def drawBatCards(self, ressource):
+		for i in range(len(self.batCards[ressource])):
+			self.batCards[ressource][i].draw(self.cityPosL[ressource][i])
+
+	def draw(self):
+		self.screen.fill(playerColors[self.id], PIRect[self.pos])
 		if self.pos == 0: # inventaire détaillé
 			# jetons
 			for tk in range(len(self.tokens)):
-				self.tokens[tk].draw(screen, self.tokenPosL[tk])
+				self.tokens[tk].draw(self.tokenPosL[tk])
 			# main
 			for i in range(len(self.resCards)):
-				self.resCards[i].draw(screen, self.handPosL[i])
+				self.resCards[i].draw(self.handPosL[i])
 			# bat. ressources
-			for i in range(len(self.resCards)):
-				pass
+			for res in range(5):
+				self.drawBatCards(res)
 		else: # inventaire réduit
 			pass
 
-	def lazyDraw(self, screen):
+	def lazyDraw(self):
 		if self.hasRecentlyChanged:
-			self.draw(screen)
+			self.draw()
 			self.hasRecentlyChanged = False
