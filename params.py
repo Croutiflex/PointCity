@@ -45,12 +45,11 @@ matos = [matos1, matos2, matos3, matos4]
 
 ## DIMENSIONS (PARAM)
 # constantes
-screenSize = (1500, 750)
+screenSize = (1920, 1080)
 space1 = 5
 space2 = 15
 space3 = 25
 cardRatio = 0.66
-playerPos = (900, 300)
 # adaptables
 cardH = (screenSize[1] - 2*space3 - 3*space2)/4
 cardL = cardH*cardRatio
@@ -66,6 +65,9 @@ PIH = (screenSize[1] - 2*space3)/2 - space2
 PIh = ((screenSize[1] - 2*space3)/2 - 3*space2)/3
 PIRect = [pg.Rect((PIx, space3), (PIL, PIH))]
 PIRect += [pg.Rect((PIx, PIH + space3 + space2 + i*(PIh + space2)), (PIL, PIh)) for i in range(3)]
+# fonds par zones
+marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
+PIBackgroundRect = pg.Rect((piochePos[0], 0), (screenSize[0] - PIx, screenSize[1]))
 # inventaire détaillé
 tokenSize2 = (PIL/4 + space1*2)/2
 tokenPosLX = (PIx + space1, PIx + space1 + tokenSize2)
@@ -76,7 +78,7 @@ cardSize2 = (cardH2*cardRatio, cardH2)
 cityPosL = (handPosL[0], cardH2 + space1 + space2)
 
 ## TIMING
-translationTime = 150
+translationTime = 30
 
 ## COLORS
 backgroundColor = pg.Color(200,200,200)

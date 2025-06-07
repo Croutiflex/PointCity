@@ -8,12 +8,14 @@ from animations import *
 from inventory import *
 
 class pointCityGame:
-	def __init__(self, nPlayers):
+	def __init__(self, screen, nPlayers):
 		self.nPlayers = nPlayers # nombre de joueurs
 		self.startingPlayer = random.randint(0, nPlayers - 1) # qui commence?
 		self.currentPlayer = self.startingPlayer # à qui le tour?
 		self.gamePhase = GPhase.DISCOVER # quelle phase de jeu?
-		self.translations = []
+		self.translationsMJ = [] # marché vers joueur
+		self.translationsPM = [] # pioche vers marché
+		self.translationsPJ = [] # pioche vers joueur
 		self.tokensLeft = 0
 
 		## par joueur :
@@ -76,38 +78,60 @@ class pointCityGame:
 		random.shuffle(allTokens)
 		self.tokenMarket = pointCityTokenMarket(allTokens[:gameMatos[3]])
 
-	def leftClick(self, mousePos):
+		# premier draw
+		self.market.draw(screen, self.gamePhase)
+		for p in self.playerInventory:
+			p.draw(screen)
+
+	def leftClick(self,	screen, mousePos):
 		match self.gamePhase:
 			case GPhase.DISCOVER:
 				if self.market.flipCard(mousePos):
 					self.gamePhase = GPhase.MARKET
+					self.market.draw(screen, self.gamePhase)
 			case GPhase.MARKET:
 				if self.piocheRect.collidepoint(mousePos) and len(self.market.selectedCards) == 0: # pioche directe
-					def func():
-						newcard = self.pioche[0]
-						self.pioche = self.pioche[1:]
-						self.playerInventory[self.currentPlayer].addResCard(newcard)
-					self.translations.append(translation(self.pioche[0].imageRes, piochePos, playerPos, False, func))
-					self.translations.append(translation(self.pioche[1].imageRes, piochePos, playerPos, False, None))
-					func()
-					self.endTurn()
+					self.directDraw()
 					return
-				selcards = self.market.selectCard(mousePos)
+				selcards = self.market.selectCard(screen, mousePos)
 				if len(selcards) == 2: # sélection marché
 					selcards.sort(key = lambda c : 4*c[0] + c[1])
-					self.endMarketPhase(selcards)
+					self.drawFromMarket(selcards)
 					
 			case GPhase.TOKEN:
 				tk = self.tokenMarket.getToken(mousePos)
+				tkpos = self.tokenMarket.findToken(mousePos)
+				tk.resize((tokenSize2, tokenSize2))
 				if tk != None:
 					def f():
 						self.playerInventory[self.currentPlayer].addToken(tk)
 						self.tokensLeft -= 1
 						if self.tokensLeft == 0:
 							self.endTurn()
-					self.addAnimation(translation(tk.image, self.tokenMarket.tokenPos[0], (tokenPosLX[0], tokenPosLY), 1, f))
+					self.translationsPJ.append(translation(tk.image, self.tokenMarket.tokenPos[tkpos], (tokenPosLX[0], tokenPosLY), f))
 
-	def endMarketPhase(self, selcards):
+	def directDraw(self):
+		card1 = self.pioche[0]
+		self.pioche = self.pioche[1:]
+		card1.resize(cardSize2)
+		card2 = self.pioche[0]
+		def f1():
+			card2.resize(cardSize2)
+			self.pioche = self.pioche[1:]
+			self.playerInventory[self.currentPlayer].addResCard(card1)
+		def f2():
+			self.playerInventory[self.currentPlayer].addResCard(card2)
+			self.endTurn()
+		self.translationsPJ.append(translation(card1.imageRes, piochePos, handPosL, f1))
+		self.translationsPJ.append(translation(pg.transform.scale(card2.imageRes, cardSize2), piochePos, handPosL, f2))
+
+	# compare le coût des batiments sélectionnés et les ressources du joueur. Renvoie True si l'achat est possible.
+	def checkCost(self, selcards):
+		return True
+
+	def drawFromMarket(self, selcards):
+		if not self.checkCost(selcards): # si achat pas possible
+			return
 		(i,j) = selcards[0]
 		(k,l) = selcards[1]
 		card1 = self.market.cards[i][j]
@@ -116,15 +140,14 @@ class pointCityGame:
 		self.market.cards[k][l] = None
 		newcard1 = self.pioche[0]
 		newcard2 = self.pioche[1]
-		self.pioche = self.pioche[1:]
 		municipalDrawn = 0
 		if card1.side == BATIMENT:
-			if card1.type == MUNICIPAL:
+			if card1.type == "municipal":
 				municipalDrawn += 1
 		else:
 			newcard1.flip()
 		if card2.side == BATIMENT:
-			if card2.type == MUNICIPAL:
+			if card2.type == "municipal":
 				municipalDrawn += 1
 		else:
 			newcard2.flip()
@@ -133,10 +156,11 @@ class pointCityGame:
 			self.playerInventory[self.currentPlayer].addResCard(card1)
 		def f2():
 			self.playerInventory[self.currentPlayer].addResCard(card2)
+			self.pioche = self.pioche[1:]
 		# marché vers joueur
-		self.addAnimation(translation(card1.getImage(), self.market.cardPos[i][j], handPosL, 0, f1))
-		self.addAnimation(translation(card2.getImage(), self.market.cardPos[k][l], handPosL, 0, f2))
-		# pioche vers marché
+		self.translationsMJ.append(translation(card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
+		self.translationsMJ.append(translation(card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
+
 		def f3():
 			self.market.cards[i][j] = newcard1
 			self.pioche = self.pioche[1:]
@@ -147,15 +171,16 @@ class pointCityGame:
 				self.gamePhase = GPhase.TOKEN
 			else:
 				self.endTurn()
-		self.addAnimation(translation(self.pioche[0].getImage(), piochePos, self.market.cardPos[i][j], 1, f3))
-		self.addAnimation(translation(self.pioche[1].getImage(), piochePos, self.market.cardPos[k][l], 1, f4))
+		# pioche vers marché
+		self.translationsPM.append(translation(newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
+		self.translationsPM.append(translation(newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
 
-	def pressEscape(self):
+	def pressEscape(self, screen):
 		match self.gamePhase:
 			case GPhase.DISCOVER:
 				self.gamePhase = GPhase.MARKET
 			case GPhase.MARKET:
-				self.market.cancelSelect()
+				self.market.cancelSelect(screen)
 
 	def endTurn(self):
 		self.currentPlayer += 1
@@ -169,36 +194,50 @@ class pointCityGame:
 		else:
 			self.gamePhase = GPhase.MARKET
 
-	def addAnimation(self, anim):
-		if anim.mode == AnimMode.SEQUENTIEL:
-			self.translations.append(anim)
-		else:
-			self.translations.insert(0, anim)
-
 	def computeScores(self):
 		pass
 
 	def draw(self, screen):
+		# marché
+		if len(self.translationsMJ) + len(self.translationsPM) > 0:
+			self.market.draw(screen, self.gamePhase)
+		else:
+			self.market.lazyDraw(screen, self.gamePhase)
+
+		# joueurs
+		if len(self.translationsMJ) + len(self.translationsPJ) > 0:
+			screen.fill(backgroundColor, PIBackgroundRect)
+			for p in self.playerInventory:
+				p.draw(screen)
+		else:
+			for p in self.playerInventory:
+				p.lazyDraw(screen)
 		mousePos = pg.mouse.get_pos()
 		# pioche
 		if self.gamePhase == GPhase.MARKET and self.piocheRect.collidepoint(mousePos) and len(self.market.selectedCards) == 0:
 			screen.fill(white, self.piocheRect)
 		self.pioche[0].draw(screen, piochePos)
-		# marché
-		self.market.draw(screen, self.gamePhase)
 		# jetons
 		self.tokenMarket.draw(screen, self.gamePhase == GPhase.TOKEN)
-		# joueurs
-		for p in self.playerInventory:
-			p.draw(screen)
+		
 		# animations
-		if len(self.translations) > 0:
-			print(len(self.translations))
-			L = [t for t in self.translations if t.mode == AnimMode.SIMULTANE]
-			if len(L) == 0:
-				L.append(self.translations[0])
-			for e in L:
-				e.draw(screen)
-				if e.done:
-					self.translations.remove(e)
+		if len(self.translationsPJ) > 0:
+			t = self.translationsPJ.pop(0)
+			if not t.done:			
+				t.draw(screen)
+				self.translationsPJ.insert(0, t)
+
+		L = []
+		while len(self.translationsMJ) > 0:
+			t = self.translationsMJ.pop()
+			if not t.done:			
+				t.draw(screen)
+				L.append(t)
+		self.translationsMJ = L
+
+		if len(self.translationsMJ) == 0 and len(self.translationsPM) > 0:
+			t = self.translationsPM.pop(0)
+			if not t.done:			
+				t.draw(screen)
+				self.translationsPM.insert(0, t)
 

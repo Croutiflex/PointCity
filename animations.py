@@ -7,18 +7,16 @@ class AnimMode(IntEnum):
 	SIMULTANE = 1
 
 # modélise le déplacement en ligne droite d'une image d'un point A à un point B
-# time = durée de l'animation en nbr de frames
 # onDone = fonction à exécuter quand l'animation est finie
 # mode = 0 pour simultané, 1 pour séquencé
 class translation:
-	def __init__(self, image, A, B, mode, onDone):
+	def __init__(self, image, A, B, onDone):
 		self.image = image
 		self.A = A
 		self.B = B
-		self.mode = mode
 		self.speedVector = ((B[0]-A[0])/translationTime, (B[1]-A[1])/translationTime)
 		self.currentPos = self.A
-		self.framesLeft = translationTime
+		self.framesLeft = translationTime # = durée de l'animation en nbr de frames
 		self.done = False
 		self.onDone = onDone
 
@@ -30,4 +28,5 @@ class translation:
 			if self.framesLeft == 0:
 				self.done = True
 				if self.onDone != None:
+					# print(id(self)," done!")
 					self.onDone()

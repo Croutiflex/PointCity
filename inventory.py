@@ -13,13 +13,15 @@ class pointCityPlayerInventory:
 		self.pos = Id
 		self.tokenPosL = [(tokenPosLX[i], tokenPosLY) for i in range(2)]
 		self.handPosL = [handPosL]
+		self.hasRecentlyChanged = False
 
 	def endTurn(self, n):
+		self.hasRecentlyChanged = True
 		p = self.pos - 1
 		self.pos = p if p >= 0 else n-1
 
 	def addToken(self, token):
-		token.image = pg.transform.scale(token.image, (tokenSize2, tokenSize2))
+		self.hasRecentlyChanged = True
 		self.tokens.append(token)
 		L = len(self.tokens)
 		if L > 2:
@@ -29,6 +31,7 @@ class pointCityPlayerInventory:
 				self.tokenPosL.append((self.tokenPosL[L-3][0], self.tokenPosL[L-3][1] + tokenSize2 + space1))
 
 	def addResCard(self, card):
+		self.hasRecentlyChanged = True
 		card.imageRes = pg.transform.scale(card.imageRes, cardSize2)
 		self.resCards.append(card)
 		self.handPosL = []
@@ -47,5 +50,13 @@ class pointCityPlayerInventory:
 			# main
 			for i in range(len(self.resCards)):
 				self.resCards[i].draw(screen, self.handPosL[i])
+			# bat. ressources
+			for i in range(len(self.resCards)):
+				pass
 		else: # inventaire réduit
 			pass
+
+	def lazyDraw(self, screen):
+		if self.hasRecentlyChanged:
+			self.draw(screen)
+			self.hasRecentlyChanged = False

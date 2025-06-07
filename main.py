@@ -10,11 +10,11 @@ def main():
 
 	# setup
 	pg.init()
-	screen = pg.display.set_mode(screenSize)
+	screen = pg.display.set_mode(screenSize, pg.SCALED | pg.FULLSCREEN)
 	screen.fill(backgroundColor)
 	pg.display.flip()
 
-	PCGame = pointCityGame(1)
+	PCGame = pointCityGame(screen, 1)
 
 	# first draw
 
@@ -25,16 +25,18 @@ def main():
 				case pg.QUIT: sys.exit()
 				case pg.MOUSEBUTTONDOWN:
 					if event.button == 1:
-						PCGame.leftClick(pg.mouse.get_pos())
+						PCGame.leftClick(screen, pg.mouse.get_pos())
 						# 			sys.exit()
 						# 		elif ES.clickRestart():
 						# 			# reset game
 						# 			screenMode = sMode.SELECTION
 						# 			SS.draw(screen)
 				case pg.KEYDOWN:
-					if event.key == pg.K_ESCAPE:
-						PCGame.pressEscape()
-		screen.fill(backgroundColor)
+					match event.key:
+						case pg.K_ESCAPE:
+							PCGame.pressEscape(screen)
+						case pg.K_RETURN:
+							sys.exit()
 		PCGame.draw(screen)
 		pg.display.flip()
 

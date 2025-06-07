@@ -28,6 +28,10 @@ class pointCityCard:
 			return True
 		return False
 
+	def resize(self, size):
+		self.imageBat = pg.transform.scale(self.imageBat, size)
+		self.imageRes = pg.transform.scale(self.imageRes, size)
+
 	def draw(self, screen, pos):
 		screen.blit(self.getImage(), pos)
 
@@ -37,6 +41,9 @@ class pointCityToken:
 		self.type = type
 		self.info = info
 		self.image = jetons[image]
+
+	def resize(self, size):
+		self.image = pg.transform.scale(self.image, size)
 
 	def draw(self, screen, pos):
 		screen.blit(self.image, pos)

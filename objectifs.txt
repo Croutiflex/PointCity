@@ -1,8 +1,8 @@
 Must have :
 	- modélisation & affichage de l'inventaire des joueurs
-	- afficher le nbr de carte restantes dans la pioche
-	- fix séquencage translation ? pe ne pas tout draw à chaque frame?
+	- afficher le nbr de cartes restantes dans la pioche
 	- menu démarrage + choix nb joueurs
+	- optimisation : lazydraw pour la pioche & les jetons
 
 Nice to have :
 	- écran de chargement

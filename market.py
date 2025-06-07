@@ -8,6 +8,7 @@ class pointCityMarket:
 		self.selectedCards = []
 		self.adjCards = []
 		self.highlightRects = []
+		self.lastMousePos = (-1, -1)
 		(x,y) = marketPos
 		for i in range(4):
 			L = []
@@ -53,12 +54,13 @@ class pointCityMarket:
 		return False
 
 	# renvoie la liste des cartes sélectionnées
-	def selectCard(self, mousePos):
+	def selectCard(self, screen, mousePos):
 		(i,j) = self.findCard(mousePos)
 		if i == -1:
 			return []
 		if len(self.selectedCards) == 0:
 			self.selectedCards.append((i,j))
+			self.drawSingleCard(screen, (i,j), blue)
 			self.adjCards = self.findAdjacent(i,j)
 			return self.selectedCards
 		elif len(self.selectedCards) == 1:
@@ -71,7 +73,8 @@ class pointCityMarket:
 			else:
 				return self.selectedCards
 
-	def cancelSelect(self):
+	def cancelSelect(self, screen):
+		self.drawSingleCard(screen, self.selectedCards[0], backgroundColor)
 		self.selectedCards = []
 		self.adjCards = []
 
@@ -106,6 +109,7 @@ class pointCityMarket:
 
 	def draw(self, screen, gamePhase):
 		(x,y) = self.findCard(pg.mouse.get_pos())
+		screen.fill(backgroundColor, marketBackgroundRect)
 		match gamePhase:
 			case GPhase.DISCOVER:
 				for i in range(4):
@@ -127,3 +131,30 @@ class pointCityMarket:
 			for j in range(4):
 				if self.cards[i][j] != None:
 					self.cards[i][j].draw(screen, self.cardPos[i][j])
+
+	def lazyDraw(self, screen, gamePhase):
+		(x,y) = self.findCard(pg.mouse.get_pos())
+		(a,b) = self.lastMousePos
+		if (x,y) == (a,b):
+			return
+		match gamePhase:
+			case GPhase.DISCOVER:
+				if x != -1:
+					self.drawSingleCard(screen, (x,y), white)
+				if a != -1:
+					self.drawSingleCard(screen, (a,b), green if self.cards[a][b].canFlip else backgroundColor)
+			case GPhase.MARKET:
+				if len(self.selectedCards) == 1:
+					if (x,y) in self.adjCards:
+						self.drawSingleCard(screen, (x,y), white)
+				elif x != -1:
+					self.drawSingleCard(screen, (x,y), white)
+				if a != -1:
+					if len(self.selectedCards) != 1 or self.selectedCards[0] != (a,b):
+						self.drawSingleCard(screen, (a,b), backgroundColor)
+		self.lastMousePos = (x,y)
+
+	def drawSingleCard(self, screen, card, color):
+		(i,j) = card
+		screen.fill(color, self.highlightRects[i][j])
+		self.cards[i][j].draw(screen, self.cardPos[i][j])
