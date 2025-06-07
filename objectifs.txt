@@ -1,0 +1,14 @@
+Must have :
+	- modélisation & affichage de l'inventaire des joueurs
+	- afficher le nbr de carte restantes dans la pioche
+	- fix séquencage translation ? pe ne pas tout draw à chaque frame?
+	- menu démarrage + choix nb joueurs
+
+Nice to have :
+	- écran de chargement
+	- menus général + options + règles
+	- afficher légende clavier
+	- animations fluides // framerate
+
+Could have :
+	- afficher le nb de tours restants
