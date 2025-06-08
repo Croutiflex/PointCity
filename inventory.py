@@ -9,13 +9,49 @@ class pointCityPlayerInventory:
 		card.imageRes = pg.transform.scale(card.imageRes, cardSize2)
 		self.resCards = [card]
 		self.batCards = [[] for i in range(5)]
+		self.production = [0 for i in range(5)]
+		self.muniBats = []
+		self.pointsBats = []
 		self.tokens = []
 		self.id = Id
 		self.pos = Id
-		self.tokenPosL = [(tokenPosLX[i], tokenPosLY) for i in range(2)]
+		self.score = 0
+		self.tokenPosL = []
+		self.nextTokenPos = (tokenPosLX[0], tokenPosLY)
 		self.handPosL = [handPosL]
 		self.cityPosL = [[] for i in range(5)]
+		self.muniPosL = []
+		self.pointsPosL = []
+		# self.surface = screen.subsurface(PIRect[0])
 		self.hasRecentlyChanged = False
+
+	def computeScore(self):
+		total = self.score
+		for tk in self.tokens:
+			match tk.type:
+				case 0: # points bruts
+					total += int(tk.info)
+				case 1: # 2 par production ou ingé
+					res = int(tk.info)
+					if res == INGENIEUR:
+						for c in self.resCards:
+							if c.ressource == INGENIEUR:
+								total += 2
+					else:
+						total += self.production[res]*2
+				case 2: # 
+					total += 3*min([self.production[int(res)] for res in tk.info.split('/')])
+				case 3: # 2/3 par production double/triple
+					for i in range(5):
+						if self.production[i] >= int(tk.info):
+							total += int(tk.info)
+				case 4: # 4 par ressource non produite
+					for i in range(5):
+						if self.production[i] == 0:
+							total += int(tk.info)
+				case 5: # multi
+					total += min(self.production)*int(tk.info)
+		return total
 
 	def endTurn(self, n):
 		self.hasRecentlyChanged = True
@@ -25,12 +61,14 @@ class pointCityPlayerInventory:
 	def addToken(self, token):
 		self.hasRecentlyChanged = True
 		self.tokens.append(token)
+		self.tokenPosL.append(self.nextTokenPos)
 		L = len(self.tokens)
-		if L > 2:
-			if L%2 == 0:
-				self.tokenPosL.append((self.tokenPosL[L-3][0], self.tokenPosL[L-2][1]))
-			else:
-				self.tokenPosL.append((self.tokenPosL[L-3][0], self.tokenPosL[L-3][1] + tokenSize2 + space1))
+		if L%2 == 0:
+			self.nextTokenPos = (self.nextTokenPos[0] - tokenSize2, self.nextTokenPos[1] + tokenSize2 + space1)
+		else:
+			self.nextTokenPos = (self.nextTokenPos[0] + tokenSize2, self.nextTokenPos[1])
+
+		# print("Score du joueur ", int(self.id+1), ": ", self.computeScore())
 
 	def addCard(self, card):
 		card.resize(cardSize2)
@@ -44,21 +82,46 @@ class pointCityPlayerInventory:
 		self.resCards.append(card)
 		self.handPosL = []
 		(x,y) = handPosL
-		space = ((3/8)*PIL - 2*space1 - cardSize[0])/len(self.resCards)
+		space = (muniPosL[0] - handPosL[0] - cardSize2[0] - space1)/len(self.resCards)
 		for c in self.resCards:
 			self.handPosL.append((x,y))
 			x += space
 
 	def addBatCard(self, card):
 		self.hasRecentlyChanged = True
-		if card.type == "ressource":
-			self.batCards[card.ressource].append(card)
-			if len(self.cityPosL[card.ressource]) == 0:
-				self.cityPosL[card.ressource].append(cityPosL[card.ressource])
-			else:
-				space = space3
-				(x,y) = self.cityPosL[card.ressource][-1]
-				self.cityPosL[card.ressource].append((x, y + space))
+		self.score += card.value
+		match card.type:
+			case "ressource":
+				self.batCards[card.ressource].append(card)
+				self.production[card.ressource] += 1
+				if self.production[card.ressource] == 1:
+					self.cityPosL[card.ressource].append(cityPosL[card.ressource])
+				elif self.production[card.ressource] > 4:
+					self.cityPosL[card.ressource] = []
+					(x,y) = cityPosL[card.ressource]
+					space = (PIH - space2 - 2*space1 - 2*cardSize2[1])/len(self.batCards[card.ressource])
+					for c in self.batCards[card.ressource]:
+						self.cityPosL[card.ressource].append((x,y))
+						y += space
+				else:
+					(x,y) = self.cityPosL[card.ressource][-1]
+					self.cityPosL[card.ressource].append((x, y + space3))
+			case "municipal":
+				self.muniBats.append(card)
+				self.muniPosL = []
+				(x,y) = muniPosL
+				space = 0.4*(pointsPosL[0] - cardSize2[0] - muniPosL[0] - space1)/len(self.muniBats)
+				for c in self.muniBats:
+					self.muniPosL.append((x,y))
+					x += space
+			case "points":
+				self.pointsBats.append(card)
+				self.pointsPosL = []
+				(x,y) = pointsPosL
+				space = 0.6*(pointsPosL[0] - cardSize2[0] - muniPosL[0] - space1)/len(self.pointsBats)
+				for c in self.pointsBats:
+					self.pointsPosL.append((x,y))
+					x -= space
 
 	def drawBatCards(self, ressource):
 		for i in range(len(self.batCards[ressource])):
@@ -76,8 +139,20 @@ class pointCityPlayerInventory:
 			# bat. ressources
 			for res in range(5):
 				self.drawBatCards(res)
+			# bat. municipaux
+			for i in range(len(self.muniBats)):
+				self.muniBats[i].draw(self.muniPosL[i])
+			# bat. à points
+			for i in range(len(self.pointsBats)):
+				self.pointsBats[i].draw(self.pointsPosL[i])
+
+			# self.surface = self.screen.subsurface(PIRect[0])
 		else: # inventaire réduit
 			pass
+
+	# test non concluant
+	# def passiveDraw(self):
+	# 	self.screen.blit(self.surface, PIRect[0])
 
 	def lazyDraw(self):
 		if self.hasRecentlyChanged:

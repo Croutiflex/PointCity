@@ -1,14 +1,17 @@
 Must have :
-	- modélisation & affichage de l'inventaire des joueurs (en cours, plus que les batiments non producteurs)
+	- modélisation & affichage de l'inventaire réduit des joueurs
+	- calcul des scores & fin de partie
 	- afficher le nbr de cartes restantes dans la pioche
 	- menu démarrage + choix nb joueurs
 	- sélection des cartes pour payer??
+	- indication pour achat pas possible
 
 Nice to have :
 	- écran de chargement
 	- menus général + options + règles
 	- afficher légende clavier
 	- animations fluides qui s'adaptent à la framerate
+	- écran de fin de partie avec scores + podium + bouton rejouer?
 
 Could have :
 	- afficher le nb de tours restants

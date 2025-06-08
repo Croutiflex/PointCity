@@ -75,9 +75,10 @@ class pointCityMarket:
 				return self.selectedCards
 
 	def cancelSelect(self):
-		self.drawSingleCard(self.selectedCards[0], backgroundColor)
-		self.selectedCards = []
-		self.adjCards = []
+		if len(self.selectedCards) > 0:
+			self.drawSingleCard(self.selectedCards[0], backgroundColor)
+			self.selectedCards = []
+			self.adjCards = []
 
 	def updateFlip(self):
 		# horizontally
@@ -156,6 +157,7 @@ class pointCityMarket:
 		self.lastMousePos = (x,y)
 
 	def drawSingleCard(self, card, color):
+		# print("last draw: ", card, color)
 		(i,j) = card
 		self.screen.fill(color, self.highlightRects[i][j])
 		self.cards[i][j].draw(self.cardPos[i][j])

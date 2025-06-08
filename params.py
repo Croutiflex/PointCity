@@ -69,12 +69,14 @@ PIRect += [pg.Rect((PIx, PIH + space3 + space2 + i*(PIh + space2)), (PIL, PIh)) 
 marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
 PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, screenSize[1]))
 # inventaire détaillé
+cardH2 = (PIH - 2*space1 - space2)/2.5
+cardSize2 = (cardH2*cardRatio, cardH2)
 tokenSize2 = (PIL/5 + space1*2)/2
 tokenPosLX = (PIx + space1, PIx + space1 + tokenSize2)
 tokenPosLY = 2*space3
-handPosL = (tokenPosLX[1] + tokenSize2 + space1, space3 + space1)
-cardH2 = (PIH - 2*space1 - space2)/2.5
-cardSize2 = (cardH2*cardRatio, cardH2)
+handPosL = (tokenPosLX[1] + tokenSize2 + space1, space3 + space2)
+muniPosL = (handPosL[0] + cardSize2[0]*2.5 + space1, handPosL[1])
+pointsPosL = (screenSize[0] - space3 - space2 - cardSize2[0], handPosL[1])
 cityPosL = [(handPosL[0], handPosL[1] + cardH2 + space2)]
 cityPosL += [(cityPosL[0][0] + i*(cardSize2[0] + space2), cityPosL[0][1]) for i in range(1,5)]
 
