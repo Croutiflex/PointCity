@@ -2,6 +2,8 @@ Must have :
 	- batiments à points dans inv réduit
 	- menu démarrage + choix nb joueurs
 	- sélection des cartes pour payer??
+	- sauvegarde de partie
+	- fix bug comptage achat
 
 Nice to have :
 	- écran de chargement
