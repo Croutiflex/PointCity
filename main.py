@@ -34,7 +34,7 @@ def main():
 									PCGame.pressEscape()
 								case pg.K_RETURN:
 									sys.exit()
-				if PCGame.over:
+				if PCGame.turnsLeft == 0:
 					PCGame.computeScores()
 					state = "END"
 			case other:

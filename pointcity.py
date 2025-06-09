@@ -20,8 +20,6 @@ class pointCityGame:
 		self.translationsPJ = [] # pioche vers joueur
 		self.tokensLeft = 0
 		self.screen = screen
-		self.isLastTurn = False
-		self.over = False
 
 		## par joueur :
 		self.playerInventory = []
@@ -65,6 +63,7 @@ class pointCityGame:
 		gameMatos = matos[nPlayers-1]
 		cards = tier1cards[:gameMatos[0]] + tier2cards[:gameMatos[1]] + tier3cards[:gameMatos[2]]
 		self.pioche = cards[16:]
+		self.turnsLeft = 1 + len(self.pioche)/2
 		(x,y) = piochePos
 		self.piocheRect = pg.Rect(x-space1, y-space1, 2*space1+cardSize[0], 2*space1+cardSize[1])
 		
@@ -131,8 +130,6 @@ class pointCityGame:
 			card2.resize(cardSize2)
 			self.pioche = self.pioche[1:]
 			self.playerInventory[self.currentPlayer].addResCard(card1)
-			if len(self.pioche) == 0:
-				self.isLastTurn = True
 		def f2():
 			self.playerInventory[self.currentPlayer].addResCard(card2)
 			self.endTurn()
@@ -243,7 +240,7 @@ class pointCityGame:
 				pos = pointsPosL
 			self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
 
-		if self.isLastTurn: # si c'est le dernier tour
+		if self.turnsLeft == 1: # si c'est le dernier tour
 			if municipalDrawn > 0:
 				self.tokensLeft = municipalDrawn
 				self.gamePhase = GPhase.TOKEN
@@ -264,8 +261,6 @@ class pointCityGame:
 		def f3():
 			self.market.cards[i][j] = newcard1
 			self.pioche = self.pioche[1:]
-			if len(self.pioche) == 0:
-				self.isLastTurn = True
 		def f4():
 			self.market.cards[k][l] = newcard2
 			if municipalDrawn > 0:
@@ -287,8 +282,8 @@ class pointCityGame:
 				self.market.cancelSelect()
 
 	def endTurn(self):
-		if self.isLastTurn:
-			self.over = True
+		self.turnsLeft -= 1
+		if self.turnsLeft == 0:
 			return
 		self.currentPlayer += 1
 		if self.currentPlayer == self.nPlayers:
