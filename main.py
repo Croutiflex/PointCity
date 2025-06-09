@@ -10,11 +10,11 @@ def main():
 	# setup
 	pg.init()
 	screen = pg.display.set_mode(screenSize, pg.SCALED | pg.FULLSCREEN)
+	pg.display.set_caption('Show Text')
 	screen.fill(backgroundColor)
 	pg.display.flip()
 
-	PCGame = pointCityGame(screen, 1)
-	PCGame.pioche = PCGame.pioche[-4:]
+	PCGame = pointCityGame(screen, 2, False)
 	state = "GAME"
 
 	# frame loop
@@ -22,6 +22,10 @@ def main():
 		match state:
 			case "GAME":
 				PCGame.draw()
+				if PCGame.over:
+					PCGame.computeScores()
+					state = "END"
+					break
 				for event in pg.event.get():
 					match event.type:
 						case pg.QUIT: sys.exit()
@@ -34,10 +38,7 @@ def main():
 									PCGame.pressEscape()
 								case pg.K_RETURN:
 									sys.exit()
-				if PCGame.turnsLeft == 0:
-					PCGame.computeScores()
-					state = "END"
-			case other:
+			case "END":
 				sys.exit()
 		pg.display.flip()
 

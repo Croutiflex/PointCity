@@ -7,10 +7,9 @@ from market import *
 from animations import *
 from inventory import *
 
-cheatMode = True
-
 class pointCityGame:
-	def __init__(self, screen, nPlayers):
+	def __init__(self, screen, nPlayers, cheatMode):
+		self.cheatMode = cheatMode
 		self.nPlayers = nPlayers # nombre de joueurs
 		self.startingPlayer = random.randint(0, nPlayers - 1) # qui commence?
 		self.currentPlayer = self.startingPlayer # à qui le tour?
@@ -20,11 +19,20 @@ class pointCityGame:
 		self.translationsPJ = [] # pioche vers joueur
 		self.tokensLeft = 0
 		self.screen = screen
+		self.over = False
+		self.turn = 0
+
+		# text nbr de cartes
+		self.piocheText = pg.font.Font('freesansbold.ttf', fontsize1)
 
 		## par joueur :
 		self.playerInventory = []
+		player = self.startingPlayer
 		for p in range(self.nPlayers):
-			self.playerInventory.append(pointCityPlayerInventory(screen, p))
+			self.playerInventory.append(pointCityPlayerInventory(screen, p, player))
+			player += 1
+			if player == nPlayers:
+				player = 0
 
 		# lecture des cartes & jetons
 		tier1cards = []
@@ -63,7 +71,7 @@ class pointCityGame:
 		gameMatos = matos[nPlayers-1]
 		cards = tier1cards[:gameMatos[0]] + tier2cards[:gameMatos[1]] + tier3cards[:gameMatos[2]]
 		self.pioche = cards[16:]
-		self.turnsLeft = 1 + len(self.pioche)/2
+		self.turnsLeft = 1 + int(len(self.pioche)/2)
 		(x,y) = piochePos
 		self.piocheRect = pg.Rect(x-space1, y-space1, 2*space1+cardSize[0], 2*space1+cardSize[1])
 		
@@ -90,6 +98,8 @@ class pointCityGame:
 
 
 	def leftClick(self, mousePos):
+		if self.over:
+			return
 		match self.gamePhase:
 			case GPhase.DISCOVER:
 				if self.market.flipCard(mousePos):
@@ -106,17 +116,20 @@ class pointCityGame:
 					self.drawFromMarket(selcards)
 					
 			case GPhase.TOKEN:
+				if len(self.tokenMarket.tokens) == 0:
+					self.endTurn()
+					return
 				tk = self.tokenMarket.getToken(mousePos)
 				tkpos = self.tokenMarket.findToken(mousePos)
 				if tk != None:
-					tk.resize((tokenSize2, tokenSize2))
+					tk.resize(2)
 					def f():
 						self.playerInventory[self.currentPlayer].addToken(tk)
 						self.tokensLeft -= 1
 						if self.tokensLeft == 0:
 							self.endTurn()
-					pos = self.playerInventory[self.currentPlayer].nextTokenPos
-					self.translationsPJ.append(translation(self.screen, tk.image, self.tokenMarket.tokenPos[tkpos], pos, f))
+					pos = self.playerInventory[self.currentPlayer].updateTokenPos()
+					self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f))
 
 	def directDraw(self):
 		if len(self.pioche) == 0:
@@ -124,21 +137,21 @@ class pointCityGame:
 			return
 		card1 = self.pioche[0]
 		self.pioche = self.pioche[1:]
-		card1.resize(cardSize2)
+		card1.resize(2)
 		card2 = self.pioche[0]
 		def f1():
-			card2.resize(cardSize2)
+			card2.resize(2)
 			self.pioche = self.pioche[1:]
 			self.playerInventory[self.currentPlayer].addResCard(card1)
 		def f2():
 			self.playerInventory[self.currentPlayer].addResCard(card2)
 			self.endTurn()
-		self.translationsPJ.append(translation(self.screen, card1.imageRes, piochePos, handPosL, f1))
-		self.translationsPJ.append(translation(self.screen, pg.transform.scale(card2.imageRes, cardSize2), piochePos, handPosL, f2))
+		self.translationsPJ.append(translation(self.screen, card1.getImage(), piochePos, handPosL, f1))
+		self.translationsPJ.append(translation(self.screen, pg.transform.scale(card2.getImage(), cardSize2), piochePos, handPosL, f2))
 
 	# compare le coût des batiments sélectionnés et les ressources du joueur. Renvoie True si l'achat est possible.
 	def checkCost(self, cards):
-		if cheatMode:
+		if self.cheatMode:
 			return True
 		cost = [0 for i in range(5)]
 		handCards = self.playerInventory[self.currentPlayer].resCards
@@ -213,10 +226,14 @@ class pointCityGame:
 			self.market.drawSingleCard((k,l), red)
 			return
 
+		card1.resize(2)
+		card2.resize(2)
+
 		def f1():
 			self.playerInventory[self.currentPlayer].addCard(card1)
 		def f2():
 			self.playerInventory[self.currentPlayer].addCard(card2)
+
 		# marché vers joueur
 		if card1.side == RESSOURCE:
 			if card1.cost != 0: # si la carte n'a pas été utilisée pour l'achat
@@ -240,6 +257,9 @@ class pointCityGame:
 				pos = pointsPosL
 			self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
 
+		self.market.cards[i][j] = None
+		self.market.cards[k][l] = None
+
 		if self.turnsLeft == 1: # si c'est le dernier tour
 			if municipalDrawn > 0:
 				self.tokensLeft = municipalDrawn
@@ -255,8 +275,6 @@ class pointCityGame:
 			newcard1.flip()
 		if card2.side == RESSOURCE:
 			newcard2.flip()
-		self.market.cards[i][j] = None
-		self.market.cards[k][l] = None
 
 		def f3():
 			self.market.cards[i][j] = newcard1
@@ -283,11 +301,14 @@ class pointCityGame:
 
 	def endTurn(self):
 		self.turnsLeft -= 1
+		self.turn += 1
+		print("Tour ", self.turn)
 		if self.turnsLeft == 0:
 			return
 		self.currentPlayer += 1
 		if self.currentPlayer == self.nPlayers:
 			self.currentPlayer = 0
+		print("Joueur ", str(self.currentPlayer + 1))
 		for p in self.playerInventory:
 			p.endTurn(self.nPlayers)
 		self.market.updateFlip()
@@ -300,12 +321,16 @@ class pointCityGame:
 
 	def computeScores(self):
 		scores = [(i+1, self.playerInventory[i].computeScore()) for i in range(self.nPlayers)]
-		scores.sort(key = lambda x: x[1])
+		scores.sort(reverse = True, key = lambda x: x[1])
 		print("Joueur ", scores[0][0], " a gagné!")
 		for (player, score) in scores:
 			print("Score du joueur ", player, ": ", score)
 
 	def draw(self):
+		if self.turnsLeft == 0 and len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) == 0:
+			self.over = True
+			return
+
 		# marché & jetons
 		if len(self.translationsMJ) + len(self.translationsPM) > 0:
 			self.market.draw(self.gamePhase)
@@ -335,6 +360,8 @@ class pointCityGame:
 
 		if len(self.pioche) > 0:
 			self.pioche[0].draw(piochePos)
+		pText = self.piocheText.render(str(len(self.pioche)), True, textColor, backgroundColor)
+		self.screen.blit(pText, pText.get_rect().move(piocheTextPos))
 		
 		# animations
 		if len(self.translationsPJ) > 0:

@@ -44,53 +44,71 @@ matos4 = [64, 48, 38, 14]
 matos = [matos1, matos2, matos3, matos4]
 
 ## DIMENSIONS (PARAM)
+
 # constantes
 screenSize = (1920, 1080)
 space1 = 5
 space2 = 15
 space3 = 25
-cardRatio = 0.66
+cardRatio = 0.66 # H/L
+fontsize1 = 30
+
 # adaptables
 cardH = (screenSize[1] - 2*space3 - 3*space2)/4
 cardL = cardH*cardRatio
 cardSize = (cardL, cardH)
 marketPos = (space3, space3)
 piochePos = (space3*2 + cardL*4 + space2*3, space3)
+piocheTextPos = (piochePos[0] + cardSize[0] + space1, piochePos[1])
 tkMarketPos = (piochePos[0], piochePos[1] + cardSize[1] + space2)
 tokenSize = (screenSize[1]-2*space3-space2-6*space1-cardH)/7
 TKR = space1 + tokenSize/2
+
+# inventaires
 PIx = piochePos[0] + tokenSize*2 + space1 + space3
 PIL = screenSize[0] - PIx - space3
+PIxHalf = PIx + PIL/2
 PIH = (screenSize[1] - 2*space3)/2 - space2
 PIh = ((screenSize[1] - 2*space3)/2 - 3*space2)/3
 PIRect = [pg.Rect((PIx, space3), (PIL, PIH))]
 PIRect += [pg.Rect((PIx, PIH + space3 + space2 + i*(PIh + space2)), (PIL, PIh)) for i in range(3)]
-# fonds par zones
-marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
-PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, screenSize[1]))
+titlePos = [(PIRect[i].x + space2, PIRect[i].y + space2) for i in range(4)]
+
 # inventaire détaillé
 cardH2 = (PIH - 2*space1 - space2)/2.5
 cardSize2 = (cardH2*cardRatio, cardH2)
 tokenSize2 = (PIL/5 + space1*2)/2
-tokenPosLX = (PIx + space1, PIx + space1 + tokenSize2)
-tokenPosLY = 2*space3
-handPosL = (tokenPosLX[1] + tokenSize2 + space1, space3 + space2)
+tokenPosL = (PIx + space1, titlePos[0][1] + fontsize1 + space2)
+handPosL = (titlePos[0][0] + tokenSize2*2 + space1, titlePos[0][1])
 muniPosL = (handPosL[0] + cardSize2[0]*2.5 + space1, handPosL[1])
 pointsPosL = (screenSize[0] - space3 - space2 - cardSize2[0], handPosL[1])
 cityPosL = [(handPosL[0], handPosL[1] + cardH2 + space2)]
 cityPosL += [(cityPosL[0][0] + i*(cardSize2[0] + space2), cityPosL[0][1]) for i in range(1,5)]
+
+# inventaire réduit, par joueur après le 1er
+tokenSize3 = PIh - 2*space1 - fontsize1 - space2
+cardSize3 = (tokenSize3*cardRatio, tokenSize3)
+tokenPosl = [(p[0], p[1] + fontsize1 + space1) for p in titlePos[1:]]
+handPosl = [(PIxHalf + space1, p[1]) for p in tokenPosl]
+iconResSize = (fontsize1, fontsize1)
+iconResX = [titlePos[0][0] + fontsize1*9 + i*(fontsize1*4) for i in range(5)]
+prodTextX = [x + fontsize1*2 for x in iconResX]
+
+# fonds
+marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
+PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, screenSize[1]))
 
 ## TIMING
 translationTime = 30
 
 ## COLORS
 backgroundColor = pg.Color(200,200,200)
-boardBackgroundColor = pg.Color(0,0,30)
+textColor = pg.Color(120,0,60)
 white = pg.Color(255,255,255)
 blue = pg.Color(50,100,255)
 green = pg.Color(50,255,100)
 red = pg.Color(255,100,50)
-playerColors = [pg.Color(25,50,128), pg.Color(25,128,50), pg.Color(128,50,25), pg.Color(128,128,25)]
+playerColors = [pg.Color(200,200,255), pg.Color(200,255,200), pg.Color(255,200,200), pg.Color(255,255,200)]
 
 ## IMAGES
 # RESSOURCES
@@ -101,6 +119,7 @@ ImgRes.append(pg.transform.scale(pg.image.load("res/energie.png"), cardSize))
 ImgRes.append(pg.transform.scale(pg.image.load("res/ecologie.png"), cardSize))
 ImgRes.append(pg.transform.scale(pg.image.load("res/industrie.png"), cardSize))
 ImgRes.append(pg.transform.scale(pg.image.load("res/ingenieur.png"), cardSize))
+
 ImgRes2 = []
 ImgRes2.append(pg.transform.scale(pg.image.load("res/commu_double.png"), cardSize))
 ImgRes2.append(pg.transform.scale(pg.image.load("res/economie_double.png"), cardSize))
@@ -108,6 +127,13 @@ ImgRes2.append(pg.transform.scale(pg.image.load("res/energie_double.png"), cardS
 ImgRes2.append(pg.transform.scale(pg.image.load("res/ecologie_double.png"), cardSize))
 ImgRes2.append(pg.transform.scale(pg.image.load("res/industrie_double.png"), cardSize))
 ImgRes2.append(pg.transform.scale(pg.image.load("res/ingenieur.png"), cardSize))
+
+iconRes = []
+iconRes.append(pg.transform.scale(pg.image.load("res/commu.png"), iconResSize))
+iconRes.append(pg.transform.scale(pg.image.load("res/economie.png"), iconResSize))
+iconRes.append(pg.transform.scale(pg.image.load("res/energie.png"), iconResSize))
+iconRes.append(pg.transform.scale(pg.image.load("res/ecologie.png"), iconResSize))
+iconRes.append(pg.transform.scale(pg.image.load("res/industrie.png"), iconResSize))
 
 # BATIMENTS
 batiments = []

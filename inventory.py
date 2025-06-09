@@ -1,12 +1,14 @@
 from params import *
 import pygame as pg
 from baseObjects import *
+import math
 
 class pointCityPlayerInventory:
-	def __init__(self, screen, Id):
+	def __init__(self, screen, Id, pos):
 		self.screen = screen
+		self.pos = pos
 		card = pointCityCard(screen, 0, INGENIEUR, 'ressource', 0, 0, 0)
-		card.imageRes = pg.transform.scale(card.imageRes, cardSize2)
+		card.resize(2 if pos == 0 else 3)
 		self.resCards = [card]
 		self.batCards = [[] for i in range(5)]
 		self.production = [0 for i in range(5)]
@@ -14,14 +16,18 @@ class pointCityPlayerInventory:
 		self.pointsBats = []
 		self.tokens = []
 		self.id = Id
-		self.pos = Id
 		self.score = 0
 		self.tokenPosL = []
-		self.nextTokenPos = (tokenPosLX[0], tokenPosLY)
+		self.tokenPosl = [[] for i in range(3)]
 		self.handPosL = [handPosL]
+		self.handPosl = [[handPosl[i]] for i in range(3)]
 		self.cityPosL = [[] for i in range(5)]
 		self.muniPosL = []
 		self.pointsPosL = []
+
+		# text intitulé joueur
+		self.font = pg.font.Font('freesansbold.ttf', fontsize1)
+
 		# self.surface = screen.subsurface(PIRect[0])
 		self.hasRecentlyChanged = False
 
@@ -57,21 +63,49 @@ class pointCityPlayerInventory:
 		self.hasRecentlyChanged = True
 		p = self.pos - 1
 		self.pos = p if p >= 0 else n-1
+		if self.pos == 0:
+			self.resize(2)
+		elif self.pos == n-1:
+			self.resize(3)
+
+	def resize(self, size):
+		for j in self.tokens:
+			j.resize(size)
+		for c in self.resCards:
+			c.resize(size)
 
 	def addToken(self, token):
 		self.hasRecentlyChanged = True
 		self.tokens.append(token)
-		self.tokenPosL.append(self.nextTokenPos)
-		L = len(self.tokens)
-		if L%2 == 0:
-			self.nextTokenPos = (self.nextTokenPos[0] - tokenSize2, self.nextTokenPos[1] + tokenSize2 + space1)
-		else:
-			self.nextTokenPos = (self.nextTokenPos[0] + tokenSize2, self.nextTokenPos[1])
 
-		# print("Score du joueur ", int(self.id+1), ": ", self.computeScore())
+	def updateTokenPos(self):
+		self.hasRecentlyChanged = True
+		# détaillé
+		L = 1 + len(self.tokens)
+		self.tokenPosL = []
+		(x,y) = tokenPosL
+		space = (PIH + space3 - y - space2)/math.ceil(L/2)
+		for i in range(L//2):
+			self.tokenPosL.append((x,y))
+			self.tokenPosL.append((x + tokenSize2, y))
+			y += space
+		if L%2 == 1:
+			self.tokenPosL.append((x,y))
+		# réduit
+		self.tokenPosl = []
+		for i in range(3):
+			tkpl = []
+			(x,y) = tokenPosl[i]
+			space = (PIxHalf - x - space1 - tokenSize3)/L
+			for i in range(L):
+				tkpl.append((x,y))
+				x += space
+			self.tokenPosl.append(tkpl)
+
+		return self.tokenPosL[-1]
 
 	def addCard(self, card):
-		card.resize(cardSize2)
+		card.resize(2)
 		if card.side == RESSOURCE:
 			self.addResCard(card)
 		else:
@@ -80,12 +114,23 @@ class pointCityPlayerInventory:
 	def addResCard(self, card):
 		self.hasRecentlyChanged = True
 		self.resCards.append(card)
+		# détail
 		self.handPosL = []
 		(x,y) = handPosL
 		space = (muniPosL[0] - handPosL[0] - cardSize2[0] - space1)/len(self.resCards)
 		for c in self.resCards:
 			self.handPosL.append((x,y))
 			x += space
+		# réduit
+		self.handPosl = []
+		for i in range(3):
+			hpl = []
+			(x,y) = handPosl[i]
+			space = min(((screenSize[0] - x - space1 - space2 - cardSize3[0])/len(self.resCards)), cardSize3[0]*0.8)
+			for i in range(len(self.resCards)):
+				hpl.append((x,y))
+				x += space
+			self.handPosl.append(hpl)
 
 	def addBatCard(self, card):
 		self.hasRecentlyChanged = True
@@ -129,6 +174,9 @@ class pointCityPlayerInventory:
 
 	def draw(self):
 		self.screen.fill(playerColors[self.id], PIRect[self.pos])
+		# nom du joueur
+		pText = self.font.render("Joueur " + str(self.id + 1), True, textColor, playerColors[self.id])
+		self.screen.blit(pText, pText.get_rect().move(titlePos[self.pos]))
 		if self.pos == 0: # inventaire détaillé
 			# jetons
 			for tk in range(len(self.tokens)):
@@ -148,7 +196,17 @@ class pointCityPlayerInventory:
 
 			# self.surface = self.screen.subsurface(PIRect[0])
 		else: # inventaire réduit
-			pass
+			# jetons
+			for tk in range(len(self.tokens)):
+				self.tokens[tk].draw(self.tokenPosl[self.pos - 1][tk])
+			# main
+			for i in range(len(self.resCards)):
+				self.resCards[i].draw(self.handPosl[self.pos - 1][i])
+			# production
+			for i in range(5):
+				self.screen.blit(iconRes[i], (iconResX[i], titlePos[self.pos][1]))
+				pText = self.font.render(str(self.production[i]), True, textColor, playerColors[self.id])
+				self.screen.blit(pText, pText.get_rect().move((prodTextX[i], titlePos[self.pos][1])))
 
 	# test non concluant
 	# def passiveDraw(self):
