@@ -19,6 +19,7 @@ class pointCityGame:
 		self.translationsPJ = [] # pioche vers joueur
 		self.tokensLeft = 0
 		self.screen = screen
+		self.screen.fill(backgroundColor)
 		self.over = False
 		self.turn = 0
 

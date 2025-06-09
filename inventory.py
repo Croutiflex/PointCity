@@ -105,7 +105,7 @@ class pointCityPlayerInventory:
 		return self.tokenPosL[-1]
 
 	def addCard(self, card):
-		card.resize(2)
+		card.resize(2 if self.pos == 0 else 3)
 		if card.side == RESSOURCE:
 			self.addResCard(card)
 		else:
@@ -207,6 +207,14 @@ class pointCityPlayerInventory:
 				self.screen.blit(iconRes[i], (iconResX[i], titlePos[self.pos][1]))
 				pText = self.font.render(str(self.production[i]), True, textColor, playerColors[self.id])
 				self.screen.blit(pText, pText.get_rect().move((prodTextX[i], titlePos[self.pos][1])))
+
+			# points des batiments
+			pg.draw.circle(self.screen, white, pointBubbleCenter[self.pos-1], pointBubbleR1)
+			pg.draw.circle(self.screen, darkBlue, pointBubbleCenter[self.pos-1], pointBubbleR2)
+			pText = self.font.render(str(self.score), True, white, darkBlue)
+			rect = pText.get_rect()
+			rect.center = pointBubbleCenter[self.pos-1]
+			self.screen.blit(pText, rect)
 
 	# test non concluant
 	# def passiveDraw(self):

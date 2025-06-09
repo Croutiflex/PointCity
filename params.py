@@ -91,8 +91,11 @@ cardSize3 = (tokenSize3*cardRatio, tokenSize3)
 tokenPosl = [(p[0], p[1] + fontsize1 + space1) for p in titlePos[1:]]
 handPosl = [(PIxHalf + space1, p[1]) for p in tokenPosl]
 iconResSize = (fontsize1, fontsize1)
-iconResX = [titlePos[0][0] + fontsize1*9 + i*(fontsize1*4) for i in range(5)]
+iconResX = [titlePos[0][0] + fontsize1*7 + i*(fontsize1*4) for i in range(5)]
 prodTextX = [x + fontsize1*2 for x in iconResX]
+pointBubbleR1 = fontsize1+space1
+pointBubbleR2 = fontsize1
+pointBubbleCenter = [(R.right-pointBubbleR1, R.top+pointBubbleR1) for R in PIRect[1:]]
 
 # fonds
 marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
@@ -102,9 +105,11 @@ PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, scr
 translationTime = 30
 
 ## COLORS
+menuBackgroundColor = pg.Color(122,183,191)
 backgroundColor = pg.Color(200,200,200)
 textColor = pg.Color(120,0,60)
 white = pg.Color(255,255,255)
+darkBlue = pg.Color(20,0,77)
 blue = pg.Color(50,100,255)
 green = pg.Color(50,255,100)
 red = pg.Color(255,100,50)
@@ -128,12 +133,7 @@ ImgRes2.append(pg.transform.scale(pg.image.load("res/ecologie_double.png"), card
 ImgRes2.append(pg.transform.scale(pg.image.load("res/industrie_double.png"), cardSize))
 ImgRes2.append(pg.transform.scale(pg.image.load("res/ingenieur.png"), cardSize))
 
-iconRes = []
-iconRes.append(pg.transform.scale(pg.image.load("res/commu.png"), iconResSize))
-iconRes.append(pg.transform.scale(pg.image.load("res/economie.png"), iconResSize))
-iconRes.append(pg.transform.scale(pg.image.load("res/energie.png"), iconResSize))
-iconRes.append(pg.transform.scale(pg.image.load("res/ecologie.png"), iconResSize))
-iconRes.append(pg.transform.scale(pg.image.load("res/industrie.png"), iconResSize))
+iconRes = [pg.transform.scale(pg.image.load("res/icon"+str(i)+".png"), iconResSize) for i in range(5)]
 
 # BATIMENTS
 batiments = []

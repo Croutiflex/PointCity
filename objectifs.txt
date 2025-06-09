@@ -1,5 +1,5 @@
 Must have :
-	- modélisation & affichage de l'inventaire réduit des joueurs
+	- batiments à points dans inv réduit
 	- menu démarrage + choix nb joueurs
 	- sélection des cartes pour payer??
 

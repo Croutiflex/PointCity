@@ -3,6 +3,7 @@ import pygame as pg
 import sys
 import random
 from pointcity import *
+from startMenu import *
 from params import *
 
 def main():
@@ -14,12 +15,31 @@ def main():
 	screen.fill(backgroundColor)
 	pg.display.flip()
 
-	PCGame = pointCityGame(screen, 2, False)
-	state = "GAME"
+	StartMenu = startMenu(screen)
+	cheatMode = False
+	PCGame = None
+	state = "STARTMENU"
 
 	# frame loop
 	while 1:
 		match state:
+			case "STARTMENU":
+				StartMenu.draw()
+				for event in pg.event.get():
+					match event.type:
+						case pg.QUIT: sys.exit()
+						case pg.MOUSEBUTTONDOWN:
+							if event.button == 1:
+								if StartMenu.leftClick(pg.mouse.get_pos()):
+									PCGame = pointCityGame(screen, StartMenu.nPlayers, cheatMode)
+									state = "GAME"
+									del StartMenu
+						case pg.KEYDOWN:
+							match event.key:
+								case pg.K_BACKSPACE:
+									cheatMode = not cheatMode
+								case pg.K_RETURN:
+									sys.exit()
 			case "GAME":
 				PCGame.draw()
 				if PCGame.over:

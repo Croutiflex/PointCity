@@ -11,14 +11,12 @@ class pointCityTokenMarket:
 		self.lastMousePos = -1
 		(x,y) = tkMarketPos
 		r = tokenSize/2
-		for j in range(len(tokens)):
+		for i in range(len(tokens)):
 			self.tokenPos.append((x,y))
 			self.tokenCenter.append((x+r,y+r))
-			if j == 6:
-				x += 2*r + space1
-				y = tkMarketPos[1]
-			else:
-				y += 2*r + space1
+			self.tokenPos.append((x + tokenSize + space1,y))
+			self.tokenCenter.append((x + tokenSize + space1 + r,y+r))
+			y += tokenSize + space1
 
 	def findToken(self, mousePos):
 		for i in range(len(self.tokens)):
