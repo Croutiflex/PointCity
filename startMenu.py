@@ -1,6 +1,8 @@
 import pygame as pg
+import sys
 from params import *
 from pointcity import *
+from rulesMenu import *
 
 #dimensions
 bannerY = screenSize[1]/2
@@ -40,7 +42,6 @@ boutonReglesImg = pg.transform.smoothscale(pg.image.load("res/startMenu/boutonre
 boutonNewGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/newgame.png"), boutonSize1)
 boutonLoadGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/loadgame.png"), boutonSize1)
 boutonJImg = [pg.transform.smoothscale(pg.image.load("res/startMenu/"+str(i)+"joueurs.png"), boutonSize1) for i in range(1,5)]
-pageBackGround = [pg.transform.smoothscale(pg.image.load("res/startMenu/"+str(i)+".png"), screenSize) for i in range(1)]
 
 # Nrs boutons
 class boutonNr(IntEnum):
@@ -53,6 +54,7 @@ class boutonNr(IntEnum):
 	J2 = 5
 	J3 = 6
 	J4 = 7
+	X = 8
 
 class startMenu:
 	def __init__(self, screen):
@@ -62,10 +64,21 @@ class startMenu:
 		self.mode = 0
 		self.page = 0
 		self.selectedButton = boutonNr.RIEN
+		self.rules = rulesMenu(screen)
 
-	def leftClick(self, mousePos):
+	def leftClick(self):
 		PCgame = None
+		if self.mode == 1:
+			if self.rules.leftClick():
+				self.mode = 0
+				self.rules.page = 0
+			self.selectedButton = boutonNr.RIEN
+			return PCgame
 		match self.selectedButton:
+			case boutonNr.X:
+				sys.exit()
+			case boutonNr.REGLES:
+				self.mode = 1
 			case boutonNr.JOUER:
 				self.page = 1
 			case boutonNr.NEWGAME:
@@ -86,6 +99,9 @@ class startMenu:
 		if self.mode == 0: # menu principal
 			if self.page > 0:
 				self.page -= 1
+		elif self.mode == 1: # menu règles
+			self.mode = 0
+			self.rules.page = 0
 		self.selectedButton = boutonNr.RIEN
 
 	def cheatOrNotCheat(self):
@@ -97,6 +113,12 @@ class startMenu:
 		if self.mode == 0: # menu principal
 			self.screen.fill(menuBackgroundColor)
 			self.screen.blit(banner, bannerRect)
+			if boutonXRect.collidepoint(mousePos):
+				self.selectedButton = boutonNr.X
+				self.screen.blit(boutonXImg2, boutonXRect)
+			else: 
+				self.selectedButton = boutonNr.RIEN
+				self.screen.blit(boutonXImg, boutonXRect)
 			match self.page:
 				case 0: # menu de départ
 					if bouton1Rect.collidepoint(mousePos):
@@ -105,8 +127,6 @@ class startMenu:
 					elif bouton2Rect.collidepoint(mousePos):
 						self.selectedButton = boutonNr.REGLES
 						self.screen.fill(white, bouton2HL)
-					else:
-						self.selectedButton = boutonNr.RIEN
 
 					self.screen.blit(boutonPlayImg, bouton1Rect)
 					self.screen.blit(boutonReglesImg, bouton2Rect)
@@ -117,8 +137,6 @@ class startMenu:
 					elif bouton2Rect.collidepoint(mousePos):
 						self.selectedButton = boutonNr.LOADGAME
 						self.screen.fill(white, bouton2HL)
-					else:
-						self.selectedButton = boutonNr.RIEN
 
 					self.screen.blit(boutonNewGameImg, bouton1Rect)
 					self.screen.blit(boutonLoadGameImg, bouton2Rect)
@@ -135,12 +153,10 @@ class startMenu:
 					elif bouton6Rect.collidepoint(mousePos):
 						self.selectedButton = boutonNr.J4
 						self.screen.fill(white, bouton6HL)
-					else:
-						self.selectedButton = boutonNr.RIEN
 
 					self.screen.blit(boutonJImg[0], bouton3Rect)
 					self.screen.blit(boutonJImg[1], bouton4Rect)
 					self.screen.blit(boutonJImg[2], bouton5Rect)
 					self.screen.blit(boutonJImg[3], bouton6Rect)
-		else: # menu aide & commandes
-			self.screen.blit(pageBackGround[self.page], (0,0))
+		else: # menu règles & commandes
+			self.rules.draw()

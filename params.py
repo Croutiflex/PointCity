@@ -152,3 +152,4 @@ for i in range(160):
 jetons = []
 for i in range(22):
 	jetons.append(pg.transform.smoothscale(pg.image.load("res/jetons/"+str(i)+".png"), (tokenSize, tokenSize)))
+	

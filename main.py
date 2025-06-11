@@ -17,10 +17,10 @@ def main():
 
 	StartMenu = startMenu(screen)
 	PCGame = None
-	state = "TEST"
+	state = "STARTMENU"
 
 	# test
-	image = boutonPlayImg
+	image = reglesImg[1]
 	mySurface = pg.Surface((screenSize[0]/2, screenSize[1]))
 
 	# frame loop
@@ -33,7 +33,7 @@ def main():
 						case pg.QUIT: sys.exit()
 						case pg.MOUSEBUTTONDOWN:
 							if event.button == 1:
-								PCGame = StartMenu.leftClick(pg.mouse.get_pos())
+								PCGame = StartMenu.leftClick()
 								if PCGame != None:
 									state = "GAME"
 									del StartMenu
@@ -41,10 +41,8 @@ def main():
 							match event.key:
 								case pg.K_ESCAPE:
 									StartMenu.retour()
-								case pg.K_BACKSPACE:
-									StartMenu.cheatOrNotCheat()
 								case pg.K_RETURN:
-									sys.exit()
+									StartMenu.cheatOrNotCheat()
 			case "GAME":
 				PCGame.draw()
 				if PCGame.over:
@@ -70,7 +68,7 @@ def main():
 			case "TEST":
 				# screen.fill(backgroundColor)
 				mySurface.fill(red)
-				mySurface.blit(image, (50,50))
+				screen.blit(image, (0,0))
 				screen.blit(mySurface, (screenSize[0]/2, screenSize[1]))
 				for event in pg.event.get():
 					match event.type:

@@ -1,5 +1,4 @@
 Must have :
-	- règles dans le menu démarrage
 	- sauvegarde slots multiples
 
 Nice to have :
