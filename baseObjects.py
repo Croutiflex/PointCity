@@ -2,8 +2,9 @@ import pygame as pg
 from params import *
 
 class pointCityCard:
-	def __init__(self, screen, tier, ressource, type, cost, value, imageBat):
+	def __init__(self, screen, tier, ressource, type, cost, value, Id):
 		# constant
+		self.Id = Id
 		self.screen = screen
 		self.tier = tier
 		self.ressource = ressource
@@ -12,9 +13,9 @@ class pointCityCard:
 		self.value = value
 		self.size = 0
 		img1 = ImgRes[ressource] if tier == 0 else ImgRes2[ressource]
-		img2 = batiments[imageBat]
-		self.imageRes = [img1, pg.transform.scale(img1, cardSize2), pg.transform.scale(img1, cardSize3)] # image face ressource, par taille
-		self.imageBat = [img2, pg.transform.scale(img2, cardSize2), pg.transform.scale(img2, cardSize3)] # image face batiment, par taille
+		img2 = batiments[Id] if Id >= 0 else pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize)
+		self.imageRes = [img1, pg.transform.smoothscale(img1, cardSize2), pg.transform.smoothscale(img1, cardSize3)] # image face ressource, par taille
+		self.imageBat = [img2, pg.transform.smoothscale(img2, cardSize2), pg.transform.smoothscale(img2, cardSize3)] # image face batiment, par taille
 		# variable
 		self.side = RESSOURCE
 		self.canFlip = True
@@ -40,13 +41,14 @@ class pointCityCard:
 
 
 class pointCityToken:
-	def __init__(self, screen, type, info, imageNr):
+	def __init__(self, screen, type, info, Id):
+		self.Id = Id
 		self.screen = screen
 		self.type = type
 		self.info = info
 		self.size = 0
-		img = jetons[imageNr]
-		self.image = [img, pg.transform.scale(img, (tokenSize2, tokenSize2)), pg.transform.scale(img, (tokenSize3, tokenSize3))]
+		img = jetons[Id]
+		self.image = [img, pg.transform.smoothscale(img, (tokenSize2, tokenSize2)), pg.transform.smoothscale(img, (tokenSize3, tokenSize3))]
 
 	def resize(self, size):
 		self.size = size - 1

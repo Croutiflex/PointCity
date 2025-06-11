@@ -8,7 +8,8 @@ from animations import *
 from inventory import *
 
 class pointCityGame:
-	def __init__(self, screen, nPlayers, cheatMode):
+	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False):
+		self.screen = screen
 		self.cheatMode = cheatMode
 		self.nPlayers = nPlayers # nombre de joueurs
 		self.startingPlayer = random.randint(0, nPlayers - 1) # qui commence?
@@ -17,25 +18,13 @@ class pointCityGame:
 		self.translationsMJ = [] # marché vers joueur
 		self.translationsPM = [] # pioche vers marché
 		self.translationsPJ = [] # pioche vers joueur
-		self.tokensLeft = 0
-		self.screen = screen
-		self.screen.fill(backgroundColor)
-		self.over = False
-		self.turn = 0
-
-		# text nbr de cartes
-		self.piocheText = pg.font.Font('freesansbold.ttf', fontsize1)
-
-		## par joueur :
 		self.playerInventory = []
-		player = self.startingPlayer
-		for p in range(self.nPlayers):
-			self.playerInventory.append(pointCityPlayerInventory(screen, p, player))
-			player += 1
-			if player == nPlayers:
-				player = 0
+		self.over = False
+		self.piocheText = pg.font.Font('freesansbold.ttf', fontsize1)
+		(x,y) = piochePos
+		self.piocheRect = pg.Rect(x-space1, y-space1, 2*space1+cardSize[0], 2*space1+cardSize[1])
 
-		# lecture des cartes & jetons
+		# lecture du détail des cartes & jetons
 		tier1cards = []
 		tier2cards = []
 		tier3cards = []
@@ -47,8 +36,8 @@ class pointCityGame:
 			type = LL[2]
 			cost = [int(c) for c in LL[3][1:-1].split(',')]
 			value = int(LL[4])
-			numImg = int(LL[5])
-			card = pointCityCard(screen, tier, ressource, type, cost, value, numImg)
+			Id = int(LL[5])
+			card = pointCityCard(screen, tier, ressource, type, cost, value, Id)
 			match tier:
 				case 0:
 					tier1cards.append(card)
@@ -57,46 +46,161 @@ class pointCityGame:
 				case 2:
 					tier3cards.append(card)
 		f.close()
-
 		f = open('res/PointCityTokens.tsv')
 		allTokens = []
 		for L in f.readlines()[1:]:
-			(type, info, image) = L.split('\t')
-			allTokens.append(pointCityToken(screen, int(type), info, int(image)))
+			(type, info, Id) = L.split('\t')
+			allTokens.append(pointCityToken(screen, int(type), info, int(Id)))
 		f.close()
 
-		# pioche
-		random.shuffle(tier1cards)
-		random.shuffle(tier2cards)
-		random.shuffle(tier3cards)
-		gameMatos = matos[nPlayers-1]
-		cards = tier1cards[:gameMatos[0]] + tier2cards[:gameMatos[1]] + tier3cards[:gameMatos[2]]
-		self.pioche = cards[16:]
-		self.turnsLeft = 1 + int(len(self.pioche)/2)
-		(x,y) = piochePos
-		self.piocheRect = pg.Rect(x-space1, y-space1, 2*space1+cardSize[0], 2*space1+cardSize[1])
-		
-		# marché
-		marketCards = []
-		n = 0
-		for i in range(4):
-			L = []
-			for j in range(4):
-				L.append(cards[n])
-				n += 1
-			marketCards.append(L)
-		self.market = pointCityMarket(screen, marketCards)
+		if isLoadedGame: # partie souvegardée
+			f = open("saves/save_"+str(saveSlot))
+			mainInfo = f.readline().strip().split('\t')
+			saveInfo = f.readlines()
+			f.close()
+			sep = 0
+			for i in range(len(saveInfo)):
+				if saveInfo[i].strip() == "-----":
+					sep = i
+					break
+			jetonsInfo = saveInfo[:i]
+			cardInfo = saveInfo[i+1:]
 
-		# inventaire des jetons
-		random.shuffle(allTokens)
-		self.tokenMarket = pointCityTokenMarket(screen, allTokens[:gameMatos[3]])
+			# infos générales
+			self.cheatMode = mainInfo[0] == "True"
+			self.nPlayers = int(mainInfo[1]) 
+			self.startingPlayer = int(mainInfo[2])
+			self.currentPlayer = int(mainInfo[3])
+			self.gamePhase = int(mainInfo[4])
+
+			# joueurs
+			pos = self.currentPlayer
+			for p in range(self.nPlayers):
+				self.playerInventory.append(pointCityPlayerInventory(screen, p, pos, False))
+				pos += 1
+				if pos == self.nPlayers:
+					pos = 0
+
+			# jetons
+			marketTokens = []
+			for line in jetonsInfo:
+				L = line.strip().split('\t')
+				(Id, place) = (int(L[0]), int(L[1]))
+				if place == 0:
+					marketTokens.append(allTokens[Id])
+				else:
+					self.playerInventory[place-1].addToken(allTokens[Id])
+
+			for i in range(self.nPlayers):
+				if len(self.playerInventory[i].tokens) > 0:
+					self.playerInventory[i].updateTokenPos(True)
+			self.tokenMarket = pointCityTokenMarket(screen, marketTokens)
+
+			# cartes
+			allCards = tier1cards + tier2cards + tier3cards
+			self.pioche = []
+			marketCards = [[None for i in range(4)] for i in range(4)]
+			for line in cardInfo:
+				L = line.strip().split('\t')
+				(Id, place) = (int(L[0]), int(L[1]))
+				if place == -1:
+					self.pioche.append(allCards[Id])
+				elif place == 0:
+					LL = L[2].split(',')
+					(pos, side) = ((int(LL[0]), int(LL[1])), int(L[3]))
+					if side == BATIMENT:
+						allCards[Id].flip()
+					marketCards[pos[0]][pos[1]] = allCards[Id]
+				else:
+					side = int(L[2])
+					if side == BATIMENT:
+						allCards[Id].flip()
+					allCards[Id].resize(2)
+					self.playerInventory[place-1].addCard(allCards[Id])
+			self.market = pointCityMarket(screen, marketCards)
+			self.tokensLeft = len(self.playerInventory[self.currentPlayer].muniBats) - len(self.playerInventory[self.currentPlayer].tokens)
+		else: # nouvelle partie
+			# joueurs
+			pos = self.currentPlayer
+			for p in range(self.nPlayers):
+				self.playerInventory.append(pointCityPlayerInventory(screen, p, pos))
+				pos += 1
+				if pos == self.nPlayers:
+					pos = 0
+
+			# pioche
+			random.shuffle(tier1cards)
+			random.shuffle(tier2cards)
+			random.shuffle(tier3cards)
+			gameMatos = matos[nPlayers-1]
+			cards = tier1cards[:gameMatos[0]] + tier2cards[:gameMatos[1]] + tier3cards[:gameMatos[2]]
+			self.pioche = cards[16:]
+
+			# marché
+			marketCards = []
+			n = 0
+			for i in range(4):
+				L = []
+				for j in range(4):
+					L.append(cards[n])
+					n += 1
+				marketCards.append(L)
+			self.market = pointCityMarket(screen, marketCards)
+
+			# inventaire des jetons
+			random.shuffle(allTokens)
+			self.tokenMarket = pointCityTokenMarket(screen, allTokens[:gameMatos[3]])
+
+		self.turnsLeft = 1 + int(len(self.pioche)/2)
+		self.turn = 0 # à changer
 
 		# premier draw
+		self.screen.fill(backgroundColor)
 		self.market.draw(self.gamePhase)
 		for p in self.playerInventory:
-			p.draw()
-		self.tokenMarket.draw(False)
+			p.lazyDraw()
+		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
 
+	# sauvegarde la partie dans un fichier texte
+	# slot à préciser, si le slot n'est pas vide il sera écrasé
+	def saveGame(self, slot): 
+		f = open("saves/save_"+str(slot), 'w')
+
+		# infos générales
+		mainInfo = str(self.cheatMode)
+		mainInfo += "\t" + str(self.nPlayers)
+		mainInfo += "\t" + str(self.startingPlayer)
+		mainInfo += "\t" + str(self.currentPlayer)
+		mainInfo += "\t" + str(self.gamePhase)
+		f.write(mainInfo)
+		
+		# jetons
+		for j in self.tokenMarket.tokens:
+			f.write("\n" + str(j.Id) + "\t" + str(0))
+		for i in range(self.nPlayers):
+			for j in self.playerInventory[i].tokens:
+				f.write("\n" + str(j.Id) + "\t" + str(i+1))
+		
+		f.write("\n-----") # ligne de séparation
+
+		# cartes
+		for c in self.pioche: #pioche
+			f.write("\n" + str(c.Id) + "\t" + str(-1))
+		for i in range(4):
+			for j in range(4): # marché
+				card = self.market.cards[i][j]
+				f.write("\n" + str(card.Id) + "\t" + str(0)  + "\t" + str(i) + "," + str(j) + "\t" + str(card.side))
+		for i in range(self.nPlayers): #joueurs
+			for c in self.playerInventory[i].resCards + self.playerInventory[i].muniBats + self.playerInventory[i].pointsBats:
+				f.write("\n" + str(c.Id) + "\t" + str(i+1) + "\t" + str(c.side))
+			for j in range(5):
+				for c in self.playerInventory[i].batCards[j]:
+					f.write("\n" + str(c.Id) + "\t" + str(i+1) + "\t" + str(c.side))
+
+		f.close()
+
+	def pressTab(self):
+		self.saveGame(1)
 
 	def leftClick(self, mousePos):
 		if self.over:
@@ -111,6 +215,7 @@ class pointCityGame:
 				if self.piocheRect.collidepoint(mousePos) and len(self.market.selectedCards) == 0: # pioche directe
 					self.directDraw()
 					return
+				self.playerInventory[self.currentPlayer].selectHandCard(mousePos)
 				selcards = self.market.selectCard(mousePos)
 				if len(selcards) == 2: # sélection marché
 					selcards.sort(key = lambda c : 4*c[0] + c[1])
@@ -148,62 +253,101 @@ class pointCityGame:
 			self.playerInventory[self.currentPlayer].addResCard(card2)
 			self.endTurn()
 		self.translationsPJ.append(translation(self.screen, card1.getImage(), piochePos, handPosL, f1))
-		self.translationsPJ.append(translation(self.screen, pg.transform.scale(card2.getImage(), cardSize2), piochePos, handPosL, f2))
+		self.translationsPJ.append(translation(self.screen, card2.getImage(), piochePos, handPosL, f2))
 
 	# compare le coût des batiments sélectionnés et les ressources du joueur. Renvoie True si l'achat est possible.
 	def checkCost(self, cards):
 		if self.cheatMode:
 			return True
 		cost = [0 for i in range(5)]
-		handCards = self.playerInventory[self.currentPlayer].resCards
-		resDrawn = []
+
+		drawnCards = []
 		for c in cards:
 			if c.side == BATIMENT:
 				for i in range(5):
 					cost[i] += c.cost[i]
 			else:
-				resDrawn.append(c)
-		resCards = resDrawn + handCards
-		resCards.sort(key = lambda c : c.ressource if c.tier == 0 else 10)
-		# print([c.ressource for c in resCards])
-		freeRes = self.playerInventory[self.currentPlayer].production
-		isFree = True
+				drawnCards.append(c)
+
+		# on déduit d'abord la prod
+		prodRes = self.playerInventory[self.currentPlayer].production
+		unpaidRes = []
 		for i in range(5):
-			x = max(0, cost[i] - freeRes[i])
-			cost[i] = x
-			if x > 0:
-				isFree = False
-		if isFree:
-			return True
-		if sum(cost) > len(resCards):
-			return False
-		usedCards = []
-		for i in range(5): 
+			cost[i] = max(0, cost[i] - prodRes[i])
 			if cost[i] > 0:
-				# print("ressource nécessaire: ", i, ", quantité: ", cost[i])
-				unusedCards = []
-				while cost[i] > 0 and len(resCards) > 0:
-					c = resCards.pop(0)
-					if c.ressource == i or c.ressource == INGENIEUR:
-						usedCards.append(c)
-						cardValue = 1 if c.tier == 0 or c.ressource == INGENIEUR else 2
-						# print("trouvé: ", c.ressource, ", quantité: ", cardValue)
-						cost[i] = max(0, cost[i] - cardValue)
-					else:
-						unusedCards.append(c)
-				resCards = unusedCards + resCards
-				# print("reste: ", [c.ressource for c in resCards])
+				unpaidRes.append(i)
+		if len(unpaidRes) == 0:
+			return True
+
+		# ressources simples & doubles
+		doubleResCards = {}
+		simpleResCards = {}
+		for i in range(5):
+			doubleResCards[i] = []
+			simpleResCards[i] = []
+		ingés = []
+		handCards = self.playerInventory[self.currentPlayer].selectedCards
+		# ressources sélectionnées dans la main + carte piochée s'il y a
+		for c in handCards + drawnCards:
+			if c.ressource == INGENIEUR:
+				ingés.append(c)
+			elif c.ressource in unpaidRes:
+				if c.tier > 0:
+					doubleResCards[c.ressource].append(c)
+				else:
+					simpleResCards[c.ressource].append(c)
+
+		usedCards = []
+		canPayOneWithDouble = [False for i in range(5)]
+		# 1re passe
+		for i in unpaidRes:
+			while cost[i] > 1 and len(doubleResCards[i]) > 0:
+				usedCards.append(doubleResCards[i].pop())
+				cost[i] -= 2
+			while cost[i] > 0 and len(simpleResCards[i]) > 0:
+				usedCards.append(simpleResCards[i].pop())
+				cost[i] -= 1
+			if cost[i] > 0 and len(doubleResCards[i]) > 0:
+				canPayOneWithDouble[i] = True
+		unpaidRes2 = []
+		for i in unpaidRes:
+			if cost[i] > 0:
+				unpaidRes2.append(i)
+		unpaidRes = unpaidRes2
+
+		# 2e passe
+		for i in unpaidRes:
+			if not canPayOneWithDouble[i]:
+				# print("ressource: ", i, ', coût: ', cost[i], ", ingés: ", len(ingés))
+				while cost[i] > 0 and len(ingés) > 0:
+					usedCards.append(ingés.pop())
+					cost[i] -= 1
 				if cost[i] > 0:
-					print("ressource manquante: ", i)
+					print("pas de quoi payer : ", i)
 					return False
-		if len(resDrawn) > 0:
-			if resDrawn[0] in resCards:
-				# si la carte ressource piochée n'est pas utilisée pour l'achat, on l'enlève car elle sera ajoutée à la main plus tard
-				resCards.remove(resDrawn[0]) 
-			elif resDrawn[0] in usedCards:
+		unpaidRes2 = []
+		for i in unpaidRes:
+			if cost[i] > 0:
+				unpaidRes2.append(i)
+		unpaidRes = unpaidRes2
+
+		# 3e passe
+		for i in unpaidRes:
+			if canPayOneWithDouble[i]:
+				usedCards.append(doubleResCards[i].pop())
+			else:
+				print("pas de quoi payer : ", i)
+				return False
+
+		# on enlève les cartes utilisées pour payer
+		print("cartes utilisées:")
+		for c in usedCards:
+			print(c.Id)
+			if c in drawnCards:
 				# si la carte ressource piochée est utilisée pour l'achat, on envoie un signal
-				resDrawn[0].cost = 0
-		self.playerInventory[self.currentPlayer].resCards = resCards
+				c.cost = 0
+			else:
+				self.playerInventory[self.currentPlayer].resCards.remove(c)
 		return True
 
 	def drawFromMarket(self, selcards):
@@ -223,10 +367,12 @@ class pointCityGame:
 				municipalDrawn += 1
 
 		if batDrawn > 0 and not self.checkCost([card1, card2]): # si achat pas possible
+			self.playerInventory[self.currentPlayer].resetSelection()
 			self.market.drawSingleCard((i,j), red)
 			self.market.drawSingleCard((k,l), red)
 			return
 
+		self.playerInventory[self.currentPlayer].resetSelection()
 		card1.resize(2)
 		card2.resize(2)
 
@@ -349,7 +495,7 @@ class pointCityGame:
 		else:
 			self.tokenMarket.lazyDraw(self.gamePhase == GPhase.TOKEN)
 			for p in self.playerInventory:
-				p.lazyDraw()
+				p.lazyDraw(self.gamePhase==GPhase.MARKET)
 
 		mousePos = pg.mouse.get_pos()
 

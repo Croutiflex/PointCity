@@ -16,7 +16,6 @@ def main():
 	pg.display.flip()
 
 	StartMenu = startMenu(screen)
-	cheatMode = False
 	PCGame = None
 	state = "STARTMENU"
 
@@ -30,14 +29,16 @@ def main():
 						case pg.QUIT: sys.exit()
 						case pg.MOUSEBUTTONDOWN:
 							if event.button == 1:
-								if StartMenu.leftClick(pg.mouse.get_pos()):
-									PCGame = pointCityGame(screen, StartMenu.nPlayers, cheatMode)
+								PCGame = StartMenu.leftClick(pg.mouse.get_pos())
+								if PCGame != None:
 									state = "GAME"
 									del StartMenu
 						case pg.KEYDOWN:
 							match event.key:
+								case pg.K_ESCAPE:
+									StartMenu.retour()
 								case pg.K_BACKSPACE:
-									cheatMode = not cheatMode
+									StartMenu.cheatOrNotCheat()
 								case pg.K_RETURN:
 									sys.exit()
 			case "GAME":
@@ -58,8 +59,10 @@ def main():
 									PCGame.pressEscape()
 								case pg.K_RETURN:
 									sys.exit()
+								case pg.K_TAB:
+									PCGame.pressTab()
 			case "END":
-				sys.exit()
+				pass
 		pg.display.flip()
 
 if __name__ == '__main__':

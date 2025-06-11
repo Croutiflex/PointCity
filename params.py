@@ -16,6 +16,8 @@ ECOLOGIE = 3
 INDUSTRIE = 4
 INGENIEUR = 5
 
+resName = ["Communauté", "Economie", "Energie", "Ecologie", "Industrie", "Ingénieur"]
+
 # type de batiment
 RESSOURCE = 0
 MUNICIPAL = 1
@@ -55,6 +57,7 @@ fontsize1 = 30
 
 # adaptables
 cardH = (screenSize[1] - 2*space3 - 3*space2)/4
+# cardH = 500
 cardL = cardH*cardRatio
 cardSize = (cardL, cardH)
 marketPos = (space3, space3)
@@ -81,6 +84,7 @@ tokenSize2 = (PIL/5 + space1*2)/2
 tokenPosL = (PIx + space1, titlePos[0][1] + fontsize1 + space2)
 handPosL = (titlePos[0][0] + tokenSize2*2 + space1, titlePos[0][1])
 muniPosL = (handPosL[0] + cardSize2[0]*2.5 + space1, handPosL[1])
+handRect = pg.Rect(handPosL, (muniPosL[0] - handPosL[0] - space1, cardSize2[1])).scale_by(1.05)
 pointsPosL = (screenSize[0] - space3 - space2 - cardSize2[0], handPosL[1])
 cityPosL = [(handPosL[0], handPosL[1] + cardH2 + space2)]
 cityPosL += [(cityPosL[0][0] + i*(cardSize2[0] + space2), cityPosL[0][1]) for i in range(1,5)]
@@ -118,33 +122,33 @@ playerColors = [pg.Color(200,200,255), pg.Color(200,255,200), pg.Color(255,200,2
 ## IMAGES
 # RESSOURCES
 ImgRes = []
-ImgRes.append(pg.transform.scale(pg.image.load("res/commu.png"), cardSize))
-ImgRes.append(pg.transform.scale(pg.image.load("res/economie.png"), cardSize))
-ImgRes.append(pg.transform.scale(pg.image.load("res/energie.png"), cardSize))
-ImgRes.append(pg.transform.scale(pg.image.load("res/ecologie.png"), cardSize))
-ImgRes.append(pg.transform.scale(pg.image.load("res/industrie.png"), cardSize))
-ImgRes.append(pg.transform.scale(pg.image.load("res/ingenieur.png"), cardSize))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/commu.png"), cardSize))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/economie.png"), cardSize))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/energie.png"), cardSize))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ecologie.png"), cardSize))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/industrie.png"), cardSize))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize))
 
 ImgRes2 = []
-ImgRes2.append(pg.transform.scale(pg.image.load("res/commu_double.png"), cardSize))
-ImgRes2.append(pg.transform.scale(pg.image.load("res/economie_double.png"), cardSize))
-ImgRes2.append(pg.transform.scale(pg.image.load("res/energie_double.png"), cardSize))
-ImgRes2.append(pg.transform.scale(pg.image.load("res/ecologie_double.png"), cardSize))
-ImgRes2.append(pg.transform.scale(pg.image.load("res/industrie_double.png"), cardSize))
-ImgRes2.append(pg.transform.scale(pg.image.load("res/ingenieur.png"), cardSize))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/commu_double.png"), cardSize))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/economie_double.png"), cardSize))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/energie_double.png"), cardSize))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ecologie_double.png"), cardSize))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/industrie_double.png"), cardSize))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize))
 
-iconRes = [pg.transform.scale(pg.image.load("res/icon"+str(i)+".png"), iconResSize) for i in range(5)]
+iconRes = [pg.transform.smoothscale(pg.image.load("res/icon"+str(i)+".png"), iconResSize) for i in range(5)]
 
 # BATIMENTS
 batiments = []
 for i in range(160):
 	file = "res/batiments/"+str(i)+".png"
 	if os.path.exists(file):
-		batiments.append(pg.transform.scale(pg.image.load(file), cardSize))
+		batiments.append(pg.transform.smoothscale(pg.image.load(file), cardSize))
 	else:
-		batiments.append(pg.transform.scale(pg.image.load("res/batiments/dummy.png"), cardSize))
+		batiments.append(pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize))
 
 # JETONS
 jetons = []
 for i in range(22):
-	jetons.append(pg.transform.scale(pg.image.load("res/jetons/"+str(i)+".png"), (tokenSize, tokenSize)))
+	jetons.append(pg.transform.smoothscale(pg.image.load("res/jetons/"+str(i)+".png"), (tokenSize, tokenSize)))

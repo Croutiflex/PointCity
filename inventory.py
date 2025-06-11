@@ -4,32 +4,36 @@ from baseObjects import *
 import math
 
 class pointCityPlayerInventory:
-	def __init__(self, screen, Id, pos):
+	def __init__(self, screen, Id, pos, newGame=True):
 		self.screen = screen
 		self.pos = pos
-		card = pointCityCard(screen, 0, INGENIEUR, 'ressource', 0, 0, 0)
-		card.resize(2 if pos == 0 else 3)
-		self.resCards = [card]
+		self.resCards = []
 		self.batCards = [[] for i in range(5)]
 		self.production = [0 for i in range(5)]
 		self.muniBats = []
 		self.pointsBats = []
 		self.tokens = []
-		self.id = Id
+		self.Id = Id
 		self.score = 0
 		self.tokenPosL = []
 		self.tokenPosl = [[] for i in range(3)]
-		self.handPosL = [handPosL]
-		self.handPosl = [[handPosl[i]] for i in range(3)]
+		self.handPosL = []
+		self.handPosl = [[] for i in range(3)]
 		self.cityPosL = [[] for i in range(5)]
 		self.muniPosL = []
 		self.pointsPosL = []
+		if newGame:
+			self.addCard(pointCityCard(screen, 0, INGENIEUR, 'ressource', 0, 0, -1))
+			self.resize()
+
+		self.selectedCards = []
 
 		# text intitulé joueur
 		self.font = pg.font.Font('freesansbold.ttf', fontsize1)
 
 		# self.surface = screen.subsurface(PIRect[0])
-		self.hasRecentlyChanged = False
+		self.mouseWasOnHand = False
+		self.hasRecentlyChanged = True
 
 	def computeScore(self):
 		total = self.score
@@ -63,25 +67,51 @@ class pointCityPlayerInventory:
 		self.hasRecentlyChanged = True
 		p = self.pos - 1
 		self.pos = p if p >= 0 else n-1
-		if self.pos == 0:
-			self.resize(2)
-		elif self.pos == n-1:
-			self.resize(3)
+		self.resize()
+		self.resetSelection()
 
-	def resize(self, size):
+	def resize(self):
+		size = 2 if self.pos == 0 else 3
+		# print("player ", self.Id,", resize : ", size)
 		for j in self.tokens:
 			j.resize(size)
 		for c in self.resCards:
 			c.resize(size)
 
+	def resetSelection(self):
+		self.hasRecentlyChanged = True
+		self.selectedCards = []
+		self.updateHandPos()
+
+	def selectHandCard(self, mousePos):
+		if not self.mouseWasOnHand:
+			return
+		for i in range(1, len(self.resCards)+1):
+			pos = self.handPosL[-i]
+			rect = pg.Rect(pos, cardSize2)
+			if rect.collidepoint(mousePos):
+				self.hasRecentlyChanged = True
+				if pos[1] < handPosL[1]: # si la carte est déjà sélectionnée
+					self.handPosL[-i] = (pos[0], handPosL[1])
+					if self.resCards[-i] not in self.selectedCards:
+						print("ERROR")
+					else:
+						self.selectedCards.remove(self.resCards[-i])
+				else:
+					self.handPosL[-i] = (pos[0], pos[1] - space2)
+					self.selectedCards.append(self.resCards[-i])
+				return
+
 	def addToken(self, token):
 		self.hasRecentlyChanged = True
 		self.tokens.append(token)
 
-	def updateTokenPos(self):
+	def updateTokenPos(self, gameLoad = False):
 		self.hasRecentlyChanged = True
 		# détaillé
-		L = 1 + len(self.tokens)
+		L = len(self.tokens)
+		if not gameLoad:
+			L += 1
 		self.tokenPosL = []
 		(x,y) = tokenPosL
 		space = (PIH + space3 - y - space2)/math.ceil(L/2)
@@ -104,25 +134,18 @@ class pointCityPlayerInventory:
 
 		return self.tokenPosL[-1]
 
-	def addCard(self, card):
-		card.resize(2 if self.pos == 0 else 3)
-		if card.side == RESSOURCE:
-			self.addResCard(card)
-		else:
-			self.addBatCard(card)
-
-	def addResCard(self, card):
-		self.hasRecentlyChanged = True
-		self.resCards.append(card)
-		# détail
+	def updateHandPos(self):
 		self.handPosL = []
+		self.handPosl = []
+		if len(self.resCards) == 0:
+			return
+		# détail
 		(x,y) = handPosL
-		space = (muniPosL[0] - handPosL[0] - cardSize2[0] - space1)/len(self.resCards)
+		space = (handRect.w - cardSize2[0])/len(self.resCards)
 		for c in self.resCards:
 			self.handPosL.append((x,y))
 			x += space
 		# réduit
-		self.handPosl = []
 		for i in range(3):
 			hpl = []
 			(x,y) = handPosl[i]
@@ -132,8 +155,18 @@ class pointCityPlayerInventory:
 				x += space
 			self.handPosl.append(hpl)
 
-	def addBatCard(self, card):
+	def addCard(self, card):
 		self.hasRecentlyChanged = True
+		if card.side == RESSOURCE:
+			self.addResCard(card)
+		else:
+			self.addBatCard(card)
+
+	def addResCard(self, card):
+		self.resCards.append(card)
+		self.updateHandPos()
+
+	def addBatCard(self, card):
 		self.score += card.value
 		match card.type:
 			case "ressource":
@@ -172,16 +205,19 @@ class pointCityPlayerInventory:
 		for i in range(len(self.batCards[ressource])):
 			self.batCards[ressource][i].draw(self.cityPosL[ressource][i])
 
-	def draw(self):
-		self.screen.fill(playerColors[self.id], PIRect[self.pos])
+	def draw(self, isMarketPhase=False):
+		# print("draw inv: ", self.Id)
+		self.screen.fill(playerColors[self.Id], PIRect[self.pos])
 		# nom du joueur
-		pText = self.font.render("Joueur " + str(self.id + 1), True, textColor, playerColors[self.id])
+		pText = self.font.render("Joueur " + str(self.Id + 1), True, textColor, playerColors[self.Id])
 		self.screen.blit(pText, pText.get_rect().move(titlePos[self.pos]))
 		if self.pos == 0: # inventaire détaillé
 			# jetons
 			for tk in range(len(self.tokens)):
 				self.tokens[tk].draw(self.tokenPosL[tk])
 			# main
+			if isMarketPhase and self.mouseWasOnHand:
+				self.screen.fill(white, handRect)
 			for i in range(len(self.resCards)):
 				self.resCards[i].draw(self.handPosL[i])
 			# bat. ressources
@@ -194,7 +230,6 @@ class pointCityPlayerInventory:
 			for i in range(len(self.pointsBats)):
 				self.pointsBats[i].draw(self.pointsPosL[i])
 
-			# self.surface = self.screen.subsurface(PIRect[0])
 		else: # inventaire réduit
 			# jetons
 			for tk in range(len(self.tokens)):
@@ -205,7 +240,7 @@ class pointCityPlayerInventory:
 			# production
 			for i in range(5):
 				self.screen.blit(iconRes[i], (iconResX[i], titlePos[self.pos][1]))
-				pText = self.font.render(str(self.production[i]), True, textColor, playerColors[self.id])
+				pText = self.font.render(str(self.production[i]), True, textColor, playerColors[self.Id])
 				self.screen.blit(pText, pText.get_rect().move((prodTextX[i], titlePos[self.pos][1])))
 
 			# points des batiments
@@ -216,11 +251,13 @@ class pointCityPlayerInventory:
 			rect.center = pointBubbleCenter[self.pos-1]
 			self.screen.blit(pText, rect)
 
-	# test non concluant
-	# def passiveDraw(self):
-	# 	self.screen.blit(self.surface, PIRect[0])
-
-	def lazyDraw(self):
+	def lazyDraw(self, isMarketPhase=False):
+		if isMarketPhase:
+			isOnHand = handRect.collidepoint(pg.mouse.get_pos())
+			if isOnHand != self.mouseWasOnHand:
+				self.mouseWasOnHand = isOnHand
+				self.hasRecentlyChanged = True
 		if self.hasRecentlyChanged:
-			self.draw()
+			self.resize()
+			self.draw(isMarketPhase)
 			self.hasRecentlyChanged = False
