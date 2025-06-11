@@ -17,7 +17,11 @@ def main():
 
 	StartMenu = startMenu(screen)
 	PCGame = None
-	state = "STARTMENU"
+	state = "TEST"
+
+	# test
+	image = boutonPlayImg
+	mySurface = pg.Surface((screenSize[0]/2, screenSize[1]))
 
 	# frame loop
 	while 1:
@@ -63,6 +67,17 @@ def main():
 									PCGame.pressTab()
 			case "END":
 				pass
+			case "TEST":
+				# screen.fill(backgroundColor)
+				mySurface.fill(red)
+				mySurface.blit(image, (50,50))
+				screen.blit(mySurface, (screenSize[0]/2, screenSize[1]))
+				for event in pg.event.get():
+					match event.type:
+						case pg.KEYDOWN:
+							match event.key:
+								case pg.K_RETURN:
+									sys.exit()
 		pg.display.flip()
 
 if __name__ == '__main__':

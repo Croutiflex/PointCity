@@ -10,6 +10,7 @@ from inventory import *
 class pointCityGame:
 	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False):
 		self.screen = screen
+		self.lazyScreen = screen
 		self.cheatMode = cheatMode
 		self.nPlayers = nPlayers # nombre de joueurs
 		self.startingPlayer = random.randint(0, nPlayers - 1) # qui commence?
@@ -474,7 +475,7 @@ class pointCityGame:
 			print("Score du joueur ", player, ": ", score)
 
 	def draw(self):
-		if self.turnsLeft == 0 and len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) == 0:
+		if self.turnsLeft == 0 and len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) == 0: # fin de partie à la fin des animations
 			self.over = True
 			return
 
