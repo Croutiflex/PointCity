@@ -54,7 +54,7 @@ class pointCityGame:
 			allTokens.append(pointCityToken(screen, int(type), info, int(Id)))
 		f.close()
 
-		if isLoadedGame: # partie souvegardée
+		if isLoadedGame: # partie sauvegardée
 			f = open("saves/save_"+str(saveSlot))
 			mainInfo = f.readline().strip().split('\t')
 			saveInfo = f.readlines()
@@ -75,12 +75,12 @@ class pointCityGame:
 			self.gamePhase = int(mainInfo[4])
 
 			# joueurs
-			pos = self.currentPlayer
-			for p in range(self.nPlayers):
-				self.playerInventory.append(pointCityPlayerInventory(screen, p, pos, False))
-				pos += 1
-				if pos == self.nPlayers:
-					pos = 0
+			i = self.currentPlayer
+			for p in range(self.nPlayers): # mauvais algo
+				self.playerInventory.append(pointCityPlayerInventory(screen, p, i, False))
+				i += 1
+				if i == self.nPlayers:
+					i = 0
 
 			# jetons
 			marketTokens = []
@@ -113,21 +113,27 @@ class pointCityGame:
 						allCards[Id].flip()
 					marketCards[pos[0]][pos[1]] = allCards[Id]
 				else:
+					if Id == 13:
+						print("place : ", place)
 					side = int(L[2])
 					if side == BATIMENT:
 						allCards[Id].flip()
 					allCards[Id].resize(2)
 					self.playerInventory[place-1].addCard(allCards[Id])
+			for p in self.playerInventory:
+				print("Joueur ", p.Id+1, ", prod:", p.production)
 			self.market = pointCityMarket(screen, marketCards)
+			self.market.updateFlip()
 			self.tokensLeft = len(self.playerInventory[self.currentPlayer].muniBats) - len(self.playerInventory[self.currentPlayer].tokens)
 		else: # nouvelle partie
 			# joueurs
-			pos = self.currentPlayer
+			i = self.startingPlayer
+			print("Joueur ", self.startingPlayer+1, " commence")
 			for p in range(self.nPlayers):
-				self.playerInventory.append(pointCityPlayerInventory(screen, p, pos))
-				pos += 1
-				if pos == self.nPlayers:
-					pos = 0
+				self.playerInventory.append(pointCityPlayerInventory(screen, p, i))
+				i += 1
+				if i == self.nPlayers:
+					i = 0
 
 			# pioche
 			random.shuffle(tier1cards)
@@ -197,11 +203,11 @@ class pointCityGame:
 			for j in range(5):
 				for c in self.playerInventory[i].batCards[j]:
 					f.write("\n" + str(c.Id) + "\t" + str(i+1) + "\t" + str(c.side))
-
 		f.close()
+		print("Partie sauvegardée! (", slot,")")
 
 	def pressTab(self):
-		self.saveGame(1)
+		self.saveGame(self.nPlayers)
 
 	def leftClick(self, mousePos):
 		if self.over:
@@ -249,9 +255,9 @@ class pointCityGame:
 		def f1():
 			card2.resize(2)
 			self.pioche = self.pioche[1:]
-			self.playerInventory[self.currentPlayer].addResCard(card1)
+			self.playerInventory[self.currentPlayer].addCard(card1)
 		def f2():
-			self.playerInventory[self.currentPlayer].addResCard(card2)
+			self.playerInventory[self.currentPlayer].addCard(card2)
 			self.endTurn()
 		self.translationsPJ.append(translation(self.screen, card1.getImage(), piochePos, handPosL, f1))
 		self.translationsPJ.append(translation(self.screen, card2.getImage(), piochePos, handPosL, f2))
@@ -272,6 +278,7 @@ class pointCityGame:
 
 		# on déduit d'abord la prod
 		prodRes = self.playerInventory[self.currentPlayer].production
+		print("coût: ", cost, ", prod: ", prodRes, ", current =", self.currentPlayer+1)
 		unpaidRes = []
 		for i in range(5):
 			cost[i] = max(0, cost[i] - prodRes[i])
@@ -450,7 +457,7 @@ class pointCityGame:
 	def endTurn(self):
 		self.turnsLeft -= 1
 		self.turn += 1
-		print("Tour ", self.turn)
+		# print("Tour ", self.turn)
 		if self.turnsLeft == 0:
 			return
 		self.currentPlayer += 1

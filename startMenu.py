@@ -92,14 +92,17 @@ class startMenu:
 				PCgame = pointCityGame(self.screen, False, nPlayers=self.nPlayers, cheatMode=self.cheatMode)
 			case boutonNr.LOADGAME:
 				self.page = 3
-			case LOADSAVE:
+			case boutonNr.LOADSAVE:
+				print("chargement partie ", self.slot)
 				PCgame = pointCityGame(self.screen, True, saveSlot=self.slot)
 		return PCgame
 
 	def retour(self):
 		if self.mode == 0: # menu principal
-			if self.page > 0:
-				self.page -= 1
+			if self.page > 1:
+				self.page = 1
+			elif self.page == 1:
+				self.page = 0
 		elif self.mode == 1: # menu règles
 			self.mode = 0
 			self.rules.page = 0
@@ -147,13 +150,13 @@ class startMenu:
 							self.selectedButton = boutonNr.PICKNP
 							self.nPlayers = i+1
 							self.screen.fill(white, boutonHLGroup2[i])
-							self.screen.blit(boutonJImg[i], boutonGroup2[i])
+						self.screen.blit(boutonJImg[i], boutonGroup2[i])
 				case 3: # menu sélection sauvegarde
 					for i in range(4):
 						if boutonGroup2[i].collidepoint(mousePos):
 							self.selectedButton = boutonNr.LOADSAVE
-							self.slot = i
+							self.slot = i+1
 							self.screen.fill(white, boutonHLGroup2[i])
-							self.screen.blit(boutonSaveImg[i], boutonGroup2[i])
+						self.screen.blit(boutonSaveImg[i], boutonGroup2[i])
 		else: # menu règles & commandes
 			self.rules.draw()

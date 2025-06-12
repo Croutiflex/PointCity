@@ -76,12 +76,13 @@ PIh = ((screenSize[1] - 2*space3)/2 - 3*space2)/3
 PIRect = [pg.Rect((PIx, space3), (PIL, PIH))]
 PIRect += [pg.Rect((PIx, PIH + space3 + space2 + i*(PIh + space2)), (PIL, PIh)) for i in range(3)]
 titlePos = [(PIRect[i].x + space2, PIRect[i].y + space2) for i in range(4)]
+titleH = 2*fontsize1
 
 # inventaire détaillé
 cardH2 = (PIH - 2*space1 - space2)/2.5
 cardSize2 = (cardH2*cardRatio, cardH2)
 tokenSize2 = (PIL/5 + space1*2)/2
-tokenPosL = (PIx + space1, titlePos[0][1] + fontsize1 + space2)
+tokenPosL = (PIx + space1, titlePos[0][1] + titleH + space2)
 handPosL = (titlePos[0][0] + tokenSize2*2 + space1, titlePos[0][1])
 muniPosL = (handPosL[0] + cardSize2[0]*2.5 + space1, handPosL[1])
 handRect = pg.Rect(handPosL, (muniPosL[0] - handPosL[0] - space1, cardSize2[1])).scale_by(1.05)
@@ -152,4 +153,6 @@ for i in range(160):
 jetons = []
 for i in range(22):
 	jetons.append(pg.transform.smoothscale(pg.image.load("res/jetons/"+str(i)+".png"), (tokenSize, tokenSize)))
-	
+
+# Joueurs
+playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+".png"), (2*tokenSize2, titleH)) for i in range(4)]

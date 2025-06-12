@@ -67,6 +67,7 @@ class pointCityPlayerInventory:
 		self.hasRecentlyChanged = True
 		p = self.pos - 1
 		self.pos = p if p >= 0 else n-1
+		# print("Joueur ", self.Id, " passe en pos : ", self.pos)
 		self.resize()
 		self.resetSelection()
 
@@ -156,6 +157,8 @@ class pointCityPlayerInventory:
 			self.handPosl.append(hpl)
 
 	def addCard(self, card):
+		if card.Id == 13:
+			print("ajout carte 13 au joueur ", self.Id+1)
 		self.hasRecentlyChanged = True
 		if card.side == RESSOURCE:
 			self.addResCard(card)
@@ -208,10 +211,9 @@ class pointCityPlayerInventory:
 	def draw(self, isMarketPhase=False):
 		# print("draw inv: ", self.Id)
 		self.screen.fill(playerColors[self.Id], PIRect[self.pos])
-		# nom du joueur
-		pText = self.font.render("Joueur " + str(self.Id + 1), True, textColor, playerColors[self.Id])
-		self.screen.blit(pText, pText.get_rect().move(titlePos[self.pos]))
 		if self.pos == 0: # inventaire détaillé
+			# nom du joueur
+			self.screen.blit(playerTitleImg[self.Id], titlePos[0])
 			# jetons
 			for tk in range(len(self.tokens)):
 				self.tokens[tk].draw(self.tokenPosL[tk])
@@ -231,6 +233,9 @@ class pointCityPlayerInventory:
 				self.pointsBats[i].draw(self.pointsPosL[i])
 
 		else: # inventaire réduit
+			# nom du joueur
+			pText = self.font.render("Joueur " + str(self.Id + 1), True, textColor, playerColors[self.Id])
+			self.screen.blit(pText, pText.get_rect().move(titlePos[self.pos]))
 			# jetons
 			for tk in range(len(self.tokens)):
 				self.tokens[tk].draw(self.tokenPosl[self.pos - 1][tk])
