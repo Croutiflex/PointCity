@@ -25,6 +25,9 @@ bouton1Rect.centery = (screenSize[1] + bannerRect.centery)/2
 bouton1HL = bouton1Rect.scale_by(HLratio)
 bouton2Rect = bouton1Rect.move(2*w1, 0)
 bouton2HL = bouton2Rect.scale_by(HLratio)
+boutonGroup1 = [bouton1Rect, bouton2Rect]
+boutonHLGroup1 = [bouton1HL, bouton2HL]
+
 bouton3Rect = bouton1Rect.copy()
 bouton3Rect.centery = bannerRect.centery + (screenSize[1] - bannerRect.centery)/3
 bouton3HL = bouton3Rect.scale_by(HLratio)
@@ -35,6 +38,8 @@ bouton5Rect = bouton3Rect.move(2*w1, 0)
 bouton5HL = bouton5Rect.scale_by(HLratio)
 bouton6Rect = bouton4Rect.move(2*w1, 0)
 bouton6HL = bouton6Rect.scale_by(HLratio)
+boutonGroup2 = [bouton3Rect, bouton4Rect, bouton5Rect, bouton6Rect]
+boutonHLGroup2 = [bouton3HL, bouton4HL, bouton5HL, bouton6HL]
 
 # images
 boutonPlayImg = pg.transform.smoothscale(pg.image.load("res/startMenu/play.png"), boutonSize1)
@@ -42,6 +47,7 @@ boutonReglesImg = pg.transform.smoothscale(pg.image.load("res/startMenu/boutonre
 boutonNewGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/newgame.png"), boutonSize1)
 boutonLoadGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/loadgame.png"), boutonSize1)
 boutonJImg = [pg.transform.smoothscale(pg.image.load("res/startMenu/"+str(i)+"joueurs.png"), boutonSize1) for i in range(1,5)]
+boutonSaveImg = [pg.transform.smoothscale(pg.image.load("res/startMenu/saveSlot"+str(i+1)+".png"), boutonSize1) for i in range(4)]
 
 # Nrs boutons
 class boutonNr(IntEnum):
@@ -50,17 +56,16 @@ class boutonNr(IntEnum):
 	REGLES = 1
 	NEWGAME = 2
 	LOADGAME = 3
-	J1 = 4
-	J2 = 5
-	J3 = 6
-	J4 = 7
-	X = 8
+	PICKNP = 4
+	X = 5
+	LOADSAVE = 6
 
 class startMenu:
 	def __init__(self, screen):
 		self.screen = screen
 		self.cheatMode = False
 		self.slot = 1
+		self.nPlayers = 1
 		self.mode = 0
 		self.page = 0
 		self.selectedButton = boutonNr.RIEN
@@ -83,15 +88,11 @@ class startMenu:
 				self.page = 1
 			case boutonNr.NEWGAME:
 				self.page = 2
-			case boutonNr.J1:
-				PCgame = pointCityGame(self.screen, False, nPlayers=1, cheatMode=self.cheatMode)
-			case boutonNr.J2:
-				PCgame = pointCityGame(self.screen, False, nPlayers=2, cheatMode=self.cheatMode)
-			case boutonNr.J3:
-				PCgame = pointCityGame(self.screen, False, nPlayers=3, cheatMode=self.cheatMode)
-			case boutonNr.J4:
-				PCgame = pointCityGame(self.screen, False, nPlayers=4, cheatMode=self.cheatMode)
+			case boutonNr.PICKNP:
+				PCgame = pointCityGame(self.screen, False, nPlayers=self.nPlayers, cheatMode=self.cheatMode)
 			case boutonNr.LOADGAME:
+				self.page = 3
+			case LOADSAVE:
 				PCgame = pointCityGame(self.screen, True, saveSlot=self.slot)
 		return PCgame
 
@@ -141,22 +142,18 @@ class startMenu:
 					self.screen.blit(boutonNewGameImg, bouton1Rect)
 					self.screen.blit(boutonLoadGameImg, bouton2Rect)
 				case 2: # menu sélection nb joueurs
-					if bouton3Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.J1
-						self.screen.fill(white, bouton3HL)
-					elif bouton4Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.J2
-						self.screen.fill(white, bouton4HL)
-					elif bouton5Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.J3
-						self.screen.fill(white, bouton5HL)
-					elif bouton6Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.J4
-						self.screen.fill(white, bouton6HL)
-
-					self.screen.blit(boutonJImg[0], bouton3Rect)
-					self.screen.blit(boutonJImg[1], bouton4Rect)
-					self.screen.blit(boutonJImg[2], bouton5Rect)
-					self.screen.blit(boutonJImg[3], bouton6Rect)
+					for i in range(4):
+						if boutonGroup2[i].collidepoint(mousePos):
+							self.selectedButton = boutonNr.PICKNP
+							self.nPlayers = i+1
+							self.screen.fill(white, boutonHLGroup2[i])
+							self.screen.blit(boutonJImg[i], boutonGroup2[i])
+				case 3: # menu sélection sauvegarde
+					for i in range(4):
+						if boutonGroup2[i].collidepoint(mousePos):
+							self.selectedButton = boutonNr.LOADSAVE
+							self.slot = i
+							self.screen.fill(white, boutonHLGroup2[i])
+							self.screen.blit(boutonSaveImg[i], boutonGroup2[i])
 		else: # menu règles & commandes
 			self.rules.draw()
