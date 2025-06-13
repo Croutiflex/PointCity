@@ -23,8 +23,7 @@ class pointCityPlayerInventory:
 		self.muniPosL = []
 		self.pointsPosL = []
 		if newGame:
-			self.addCard(pointCityCard(screen, 0, INGENIEUR, 'ressource', 0, 0, -1))
-			self.resize()
+			self.addInge()
 
 		self.selectedCards = []
 
@@ -34,6 +33,10 @@ class pointCityPlayerInventory:
 		# self.surface = screen.subsurface(PIRect[0])
 		self.mouseWasOnHand = False
 		self.hasRecentlyChanged = True
+
+	def addInge(self):
+		self.hasRecentlyChanged = True
+		self.addCard(pointCityCard(self.screen, 0, INGENIEUR, 'ressource', 0, 0, -1))
 
 	def computeScore(self):
 		total = self.score
@@ -71,8 +74,11 @@ class pointCityPlayerInventory:
 		self.resize()
 		self.resetSelection()
 
+	def getSize(self):
+		return 2 if self.pos == 0 else 3
+
 	def resize(self):
-		size = 2 if self.pos == 0 else 3
+		size = self.getSize()
 		# print("player ", self.Id,", resize : ", size)
 		for j in self.tokens:
 			j.resize(size)
@@ -157,8 +163,7 @@ class pointCityPlayerInventory:
 			self.handPosl.append(hpl)
 
 	def addCard(self, card):
-		if card.Id == 13:
-			print("ajout carte 13 au joueur ", self.Id+1)
+		print("carte ", card.Id, " pour joueur ", self.Id)
 		self.hasRecentlyChanged = True
 		if card.side == RESSOURCE:
 			self.addResCard(card)
@@ -209,11 +214,10 @@ class pointCityPlayerInventory:
 			self.batCards[ressource][i].draw(self.cityPosL[ressource][i])
 
 	def draw(self, isMarketPhase=False):
-		# print("draw inv: ", self.Id)
 		self.screen.fill(playerColors[self.Id], PIRect[self.pos])
 		if self.pos == 0: # inventaire détaillé
 			# nom du joueur
-			self.screen.blit(playerTitleImg[self.Id], titlePos[0])
+			self.screen.blit(playerTitleImg[self.Id], titlePos[self.pos])
 			# jetons
 			for tk in range(len(self.tokens)):
 				self.tokens[tk].draw(self.tokenPosL[tk])
@@ -234,8 +238,7 @@ class pointCityPlayerInventory:
 
 		else: # inventaire réduit
 			# nom du joueur
-			pText = self.font.render("Joueur " + str(self.Id + 1), True, textColor, playerColors[self.Id])
-			self.screen.blit(pText, pText.get_rect().move(titlePos[self.pos]))
+			self.screen.blit(playerTitleImgSmall[self.Id], titlePos[self.pos])
 			# jetons
 			for tk in range(len(self.tokens)):
 				self.tokens[tk].draw(self.tokenPosl[self.pos - 1][tk])
@@ -263,6 +266,7 @@ class pointCityPlayerInventory:
 				self.mouseWasOnHand = isOnHand
 				self.hasRecentlyChanged = True
 		if self.hasRecentlyChanged:
+			print("draw inv: ", self.Id+1, " at pos ", self.pos)
 			self.resize()
 			self.draw(isMarketPhase)
 			self.hasRecentlyChanged = False

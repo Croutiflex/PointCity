@@ -23,8 +23,9 @@ class pointCityCard:
 	def __str__(self):
 		return str(self.ressource)
 
-	def getImage(self):
-		return self.imageRes[self.size] if self.side == RESSOURCE else self.imageBat[self.size]
+	def getImage(self, size=-1):
+		s = self.size if size == -1 else size-1
+		return self.imageRes[s] if self.side == RESSOURCE else self.imageBat[s]
 
 	# renvoie True si la carte a été retournée, false sinon
 	def flip(self):
@@ -34,6 +35,8 @@ class pointCityCard:
 		return False
 
 	def resize(self, size):
+		if self.Id == -1:
+			print("resize card -1 : ", size)
 		self.size = size - 1
 
 	def draw(self, pos):

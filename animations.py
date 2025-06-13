@@ -1,23 +1,18 @@
 from params import *
 import pygame as pg
 
-# modes d'animation
-class AnimMode(IntEnum):
-	SEQUENTIEL = 0
-	SIMULTANE = 1
-
 # modélise le déplacement en ligne droite d'une image d'un point A à un point B
 # onDone = fonction à exécuter quand l'animation est finie
 # mode = 0 pour simultané, 1 pour séquencé
 class translation:
-	def __init__(self, screen, image, A, B, onDone):
+	def __init__(self, screen, image, A, B, onDone, time=translationTime):
 		self.screen = screen
 		self.image = image
 		self.A = A
 		self.B = B
-		self.speedVector = ((B[0]-A[0])/translationTime, (B[1]-A[1])/translationTime)
+		self.speedVector = ((B[0]-A[0])/time, (B[1]-A[1])/time)
 		self.currentPos = self.A
-		self.framesLeft = translationTime # = durée de l'animation en nbr de frames
+		self.framesLeft = time+1 # = durée de l'animation en nbr de frames
 		self.done = False
 		self.onDone = onDone
 

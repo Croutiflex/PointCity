@@ -91,8 +91,9 @@ cityPosL = [(handPosL[0], handPosL[1] + cardH2 + space2)]
 cityPosL += [(cityPosL[0][0] + i*(cardSize2[0] + space2), cityPosL[0][1]) for i in range(1,5)]
 
 # inventaire réduit, par joueur après le 1er
-tokenSize3 = PIh - 2*space1 - fontsize1 - space2
-cardSize3 = (tokenSize3*cardRatio, tokenSize3)
+tokenSize3 = PIh - 2*space1 - titleH - space2
+cardH3 = PIh - 2*space1 - fontsize1 - space2
+cardSize3 = (cardH3*cardRatio, cardH3)
 tokenPosl = [(p[0], p[1] + fontsize1 + space1) for p in titlePos[1:]]
 handPosl = [(PIxHalf + space1, p[1]) for p in tokenPosl]
 iconResSize = (fontsize1, fontsize1)
@@ -107,7 +108,9 @@ marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
 PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, screenSize[1]))
 
 ## TIMING
+pauseTime1 = 1500
 translationTime = 30
+translationTime2 = 50
 
 ## COLORS
 menuBackgroundColor = pg.Color(122,183,191)
@@ -118,7 +121,7 @@ darkBlue = pg.Color(20,0,77)
 blue = pg.Color(50,100,255)
 green = pg.Color(50,255,100)
 red = pg.Color(255,100,50)
-playerColors = [pg.Color(200,200,255), pg.Color(200,255,200), pg.Color(255,200,200), pg.Color(255,255,200)]
+playerColors = [pg.Color(204,153,255), pg.Color(255,204,153), pg.Color(153,255,153), pg.Color(255,153,204)]
 
 ## IMAGES
 # RESSOURCES
@@ -156,3 +159,4 @@ for i in range(22):
 
 # Joueurs
 playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+".png"), (2*tokenSize2, titleH)) for i in range(4)]
+playerTitleImgSmall = [playerTitleImg[i].subsurface(pg.Rect(0, fontsize1/2, 2*tokenSize2, fontsize1)) for i in range(4)]

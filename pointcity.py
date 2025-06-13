@@ -75,12 +75,14 @@ class pointCityGame:
 			self.gamePhase = int(mainInfo[4])
 
 			# joueurs
-			i = self.currentPlayer
-			for p in range(self.nPlayers): # mauvais algo
-				self.playerInventory.append(pointCityPlayerInventory(screen, p, i, False))
-				i += 1
-				if i == self.nPlayers:
-					i = 0
+			Id = self.currentPlayer
+			print("au tour du joueur ", self.currentPlayer+1)
+			for pos in range(self.nPlayers):
+				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, False))
+				Id += 1
+				if Id == self.nPlayers:
+					Id = 0
+			self.playerInventory.sort(key = lambda p : p.Id)
 
 			# jetons
 			marketTokens = []
@@ -113,27 +115,29 @@ class pointCityGame:
 						allCards[Id].flip()
 					marketCards[pos[0]][pos[1]] = allCards[Id]
 				else:
-					if Id == 13:
-						print("place : ", place)
-					side = int(L[2])
-					if side == BATIMENT:
-						allCards[Id].flip()
-					allCards[Id].resize(2)
-					self.playerInventory[place-1].addCard(allCards[Id])
-			for p in self.playerInventory:
-				print("Joueur ", p.Id+1, ", prod:", p.production)
+					if Id == -1:
+						self.playerInventory[place-1].addInge()
+					else:
+						side = int(L[2])
+						if side == BATIMENT:
+							allCards[Id].flip()
+						allCards[Id].resize(2)
+						self.playerInventory[place-1].addCard(allCards[Id])
+			# for p in self.playerInventory:
+			# 	print("Joueur ", p.Id+1, ", prod:", p.production)
 			self.market = pointCityMarket(screen, marketCards)
 			self.market.updateFlip()
 			self.tokensLeft = len(self.playerInventory[self.currentPlayer].muniBats) - len(self.playerInventory[self.currentPlayer].tokens)
 		else: # nouvelle partie
 			# joueurs
-			i = self.startingPlayer
+			Id = self.startingPlayer
 			print("Joueur ", self.startingPlayer+1, " commence")
-			for p in range(self.nPlayers):
-				self.playerInventory.append(pointCityPlayerInventory(screen, p, i))
-				i += 1
-				if i == self.nPlayers:
-					i = 0
+			for pos in range(self.nPlayers):
+				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos))
+				Id += 1
+				if Id == self.nPlayers:
+					Id = 0
+			self.playerInventory.sort(key = lambda p : p.Id)
 
 			# pioche
 			random.shuffle(tier1cards)
@@ -178,7 +182,7 @@ class pointCityGame:
 		mainInfo += "\t" + str(self.nPlayers)
 		mainInfo += "\t" + str(self.startingPlayer)
 		mainInfo += "\t" + str(self.currentPlayer)
-		mainInfo += "\t" + str(self.gamePhase)
+		mainInfo += "\t" + str(int(self.gamePhase))
 		f.write(mainInfo)
 		
 		# jetons
@@ -242,7 +246,7 @@ class pointCityGame:
 						if self.tokensLeft == 0:
 							self.endTurn()
 					pos = self.playerInventory[self.currentPlayer].updateTokenPos()
-					self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f))
+					self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f, translationTime2))
 
 	def directDraw(self):
 		if len(self.pioche) == 0:
@@ -252,6 +256,7 @@ class pointCityGame:
 		self.pioche = self.pioche[1:]
 		card1.resize(2)
 		card2 = self.pioche[0]
+		print("pioche cartes ", card1.Id, " et ", card2.Id)
 		def f1():
 			card2.resize(2)
 			self.pioche = self.pioche[1:]
@@ -260,7 +265,7 @@ class pointCityGame:
 			self.playerInventory[self.currentPlayer].addCard(card2)
 			self.endTurn()
 		self.translationsPJ.append(translation(self.screen, card1.getImage(), piochePos, handPosL, f1))
-		self.translationsPJ.append(translation(self.screen, card2.getImage(), piochePos, handPosL, f2))
+		self.translationsPJ.append(translation(self.screen, card2.getImage(2), piochePos, handPosL, f2))
 
 	# compare le coût des batiments sélectionnés et les ressources du joueur. Renvoie True si l'achat est possible.
 	def checkCost(self, cards):
@@ -473,6 +478,7 @@ class pointCityGame:
 			self.gamePhase = GPhase.MARKET
 		self.market.draw(self.gamePhase)
 		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+		pg.time.wait(pauseTime1)
 
 	def computeScores(self):
 		scores = [(i+1, self.playerInventory[i].computeScore()) for i in range(self.nPlayers)]
