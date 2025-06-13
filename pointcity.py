@@ -478,7 +478,7 @@ class pointCityGame:
 			self.gamePhase = GPhase.MARKET
 		self.market.draw(self.gamePhase)
 		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
-		pg.time.wait(pauseTime1)
+		# pg.time.wait(pauseTime1)
 
 	def computeScores(self):
 		scores = [(i+1, self.playerInventory[i].computeScore()) for i in range(self.nPlayers)]

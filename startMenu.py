@@ -49,6 +49,9 @@ boutonLoadGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/loadga
 boutonJImg = [pg.transform.smoothscale(pg.image.load("res/startMenu/"+str(i)+"joueurs.png"), boutonSize1) for i in range(1,5)]
 boutonSaveImg = [pg.transform.smoothscale(pg.image.load("res/startMenu/saveSlot"+str(i+1)+".png"), boutonSize1) for i in range(4)]
 
+# sauvegardes actives
+slotIsEmpty = [not os.path.exists("saves/save_"+str(i+1)) for i in range(4)]
+
 # Nrs boutons
 class boutonNr(IntEnum):
 	RIEN = -1
@@ -153,7 +156,7 @@ class startMenu:
 						self.screen.blit(boutonJImg[i], boutonGroup2[i])
 				case 3: # menu sélection sauvegarde
 					for i in range(4):
-						if boutonGroup2[i].collidepoint(mousePos):
+						if not slotIsEmpty[i] and boutonGroup2[i].collidepoint(mousePos):
 							self.selectedButton = boutonNr.LOADSAVE
 							self.slot = i+1
 							self.screen.fill(white, boutonHLGroup2[i])

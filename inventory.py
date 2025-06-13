@@ -121,7 +121,7 @@ class pointCityPlayerInventory:
 			L += 1
 		self.tokenPosL = []
 		(x,y) = tokenPosL
-		space = (PIH + space3 - y - space2)/math.ceil(L/2)
+		space = min((PIH + space3 - y - space2)/math.ceil(L/2), tokenSize2+space1)
 		for i in range(L//2):
 			self.tokenPosL.append((x,y))
 			self.tokenPosL.append((x + tokenSize2, y))
@@ -133,7 +133,7 @@ class pointCityPlayerInventory:
 		for i in range(3):
 			tkpl = []
 			(x,y) = tokenPosl[i]
-			space = (PIxHalf - x - space1 - tokenSize3)/L
+			space = min((PIxHalf - x - space1 - tokenSize3)/L, tokenSize3+space1)
 			for i in range(L):
 				tkpl.append((x,y))
 				x += space
