@@ -45,7 +45,6 @@ class boutonNr(IntEnum):
 class rulesMenu:
 	def __init__(self, screen):
 		self.screen = screen
-		self.cheatMode = False
 		self.page = 0
 		self.selectedButton = boutonNr.RIEN
 

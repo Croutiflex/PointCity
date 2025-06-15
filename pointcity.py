@@ -164,12 +164,14 @@ class pointCityGame:
 
 		self.turnsLeft = 1 + int(len(self.pioche)/2)
 		self.turn = 0 # à changer
+		self.firstDraw()
 
+	def firstDraw(self):
 		# premier draw
 		self.screen.fill(backgroundColor)
 		self.market.draw(self.gamePhase)
 		for p in self.playerInventory:
-			p.lazyDraw()
+			p.draw()
 		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
 
 	# sauvegarde la partie dans un fichier texte
@@ -210,7 +212,7 @@ class pointCityGame:
 		f.close()
 		print("Partie sauvegardée! (", slot,")")
 
-	def pressTab(self):
+	def pressTab(self): # obsolete
 		self.saveGame(self.nPlayers)
 
 	def leftClick(self, mousePos):
@@ -450,7 +452,7 @@ class pointCityGame:
 		self.translationsPM.append(translation(self.screen, newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
 		self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
 
-	def pressEscape(self):
+	def rightClick(self):
 		match self.gamePhase:
 			case GPhase.DISCOVER:
 				self.gamePhase = GPhase.MARKET

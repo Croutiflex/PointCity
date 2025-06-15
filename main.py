@@ -4,6 +4,7 @@ import sys
 import random
 from pointcity import *
 from startMenu import *
+from mainMenu import *
 from params import *
 
 def main():
@@ -16,6 +17,7 @@ def main():
 	pg.display.flip()
 
 	StartMenu = startMenu(screen)
+	MainMenu = mainMenu(screen)
 	PCGame = None
 	state = "STARTMENU"
 
@@ -43,6 +45,25 @@ def main():
 									StartMenu.retour()
 								case pg.K_RETURN:
 									StartMenu.cheatOrNotCheat()
+			case "MAINMENU":
+				MainMenu.draw()
+				for event in pg.event.get():
+					match event.type:
+						case pg.QUIT: sys.exit()
+						case pg.MOUSEBUTTONDOWN:
+							if event.button == 1:
+								if MainMenu.leftClick():
+									PCGame.saveGame(MainMenu.slot)
+								if not MainMenu.isActive:
+									state = "GAME"
+									PCGame.firstDraw()
+						case pg.KEYDOWN:
+							match event.key:
+								case pg.K_ESCAPE:
+									MainMenu.retour()
+				if MainMenu.redrawGame:
+					PCGame.firstDraw()
+					MainMenu.redrawGame = False
 			case "GAME":
 				PCGame.draw()
 				if PCGame.over:
@@ -55,14 +76,13 @@ def main():
 						case pg.MOUSEBUTTONDOWN:
 							if event.button == 1:
 								PCGame.leftClick(pg.mouse.get_pos())
+							elif event.button == 2:
+								PCGame.rightClick()
 						case pg.KEYDOWN:
 							match event.key:
 								case pg.K_ESCAPE:
-									PCGame.pressEscape()
-								case pg.K_RETURN:
-									sys.exit()
-								case pg.K_TAB:
-									PCGame.pressTab()
+									state = "MAINMENU"
+									MainMenu.isActive = True
 			case "END":
 				pass
 			case "TEST":
