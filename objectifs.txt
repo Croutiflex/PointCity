@@ -1,7 +1,5 @@
 Must have :
-	- sauvegarde slots multiples
-	- alignement jetons détail
-	- image joueur dans inv réduit
+	- popup dernier tour!
 
 Nice to have :
 	- écran de chargement
