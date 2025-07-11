@@ -1,11 +1,10 @@
 Must have :
-	- popup dernier tour!
-	- bug grosse carte
-	- bug double clic
+	- bug bout qui dépasse : analyse
+	- avatars : sélection & affichage
 	- menu fin de partie
 
 Nice to have :
-	- écran de chargement
+	- écran de chargement au lancement du jeu
 	- animations fluides qui s'adaptent à la framerate
 
 Could have :

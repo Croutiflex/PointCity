@@ -36,7 +36,9 @@ class pointCityPlayerInventory:
 
 	def addInge(self):
 		self.hasRecentlyChanged = True
-		self.addCard(pointCityCard(self.screen, 0, INGENIEUR, 'ressource', 0, 0, -1))
+		card = pointCityCard(self.screen, 0, INGENIEUR, 'ressource', None, 0, -1)
+		card.resize(self.getSize())
+		self.addCard(card)
 
 	def computeScore(self):
 		total = self.score
@@ -163,7 +165,7 @@ class pointCityPlayerInventory:
 			self.handPosl.append(hpl)
 
 	def addCard(self, card):
-		print("carte ", card.Id, " pour joueur ", self.Id)
+		# print("carte ", card.Id, " pour joueur ", self.Id)
 		self.hasRecentlyChanged = True
 		if card.side == RESSOURCE:
 			self.addResCard(card)
@@ -266,7 +268,7 @@ class pointCityPlayerInventory:
 				self.mouseWasOnHand = isOnHand
 				self.hasRecentlyChanged = True
 		if self.hasRecentlyChanged:
-			print("draw inv: ", self.Id+1, " at pos ", self.pos)
+			# print("draw inv: ", self.Id+1, " at pos ", self.pos)
 			self.resize()
 			self.draw(isMarketPhase)
 			self.hasRecentlyChanged = False

@@ -15,7 +15,6 @@ boutonW = menuTitleRect.w/2
 boutonResumeImg = pg.image.load("res/mainMenu/boutonResume.png")
 (a,b) = boutonResumeImg.get_rect().size
 boutonSize1 = (boutonW, boutonW*b/a)
-print("boutonSize1 : ", boutonSize1)
 boutonX = menuTitleRect.left + boutonW/2
 boutonY = menuTitleRect.top + menuTitleRect.h/3
 padding = boutonSize1[1]/2

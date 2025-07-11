@@ -76,7 +76,7 @@ def main():
 						case pg.MOUSEBUTTONDOWN:
 							if event.button == 1:
 								PCGame.leftClick(pg.mouse.get_pos())
-							elif event.button == 2:
+							elif event.button == 3:
 								PCGame.rightClick()
 						case pg.KEYDOWN:
 							match event.key:

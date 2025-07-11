@@ -35,8 +35,6 @@ class pointCityCard:
 		return False
 
 	def resize(self, size):
-		if self.Id == -1:
-			print("resize card -1 : ", size)
 		self.size = size - 1
 
 	def draw(self, pos):

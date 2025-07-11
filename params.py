@@ -107,6 +107,10 @@ pointBubbleCenter = [(R.right-pointBubbleR1, R.top+pointBubbleR1) for R in PIRec
 marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
 PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, screenSize[1]))
 
+# popup
+lastTurnPopUpSize = (400, 100)
+lastTurnPopUpPos = (screenSize[0]/2 - lastTurnPopUpSize[0]/2, screenSize[1]/2 - lastTurnPopUpSize[1]/2)
+
 ## TIMING
 pauseTime1 = 1500
 translationTime = 30
@@ -124,6 +128,7 @@ red = pg.Color(255,100,50)
 playerColors = [pg.Color(204,153,255), pg.Color(255,204,153), pg.Color(153,255,153), pg.Color(255,153,204)]
 
 ## IMAGES
+dummyImage = pg.image.load("res/batiments/dummy.png")
 # RESSOURCES
 ImgRes = []
 ImgRes.append(pg.transform.smoothscale(pg.image.load("res/commu.png"), cardSize))
@@ -156,6 +161,9 @@ for i in range(160):
 jetons = []
 for i in range(22):
 	jetons.append(pg.transform.smoothscale(pg.image.load("res/jetons/"+str(i)+".png"), (tokenSize, tokenSize)))
+
+# POPUP
+lastTurnPopUpImage = pg.transform.smoothscale(dummyImage, lastTurnPopUpSize)
 
 # Joueurs
 playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+".png"), (2*tokenSize2, titleH)) for i in range(4)]

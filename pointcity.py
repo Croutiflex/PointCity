@@ -6,11 +6,11 @@ from baseObjects import *
 from market import *
 from animations import *
 from inventory import *
+from popup import *
 
 class pointCityGame:
 	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False):
 		self.screen = screen
-		self.lazyScreen = screen
 		self.cheatMode = cheatMode
 		self.nPlayers = nPlayers # nombre de joueurs
 		self.startingPlayer = random.randint(0, nPlayers - 1) # qui commence?
@@ -19,6 +19,7 @@ class pointCityGame:
 		self.translationsMJ = [] # marché vers joueur
 		self.translationsPM = [] # pioche vers marché
 		self.translationsPJ = [] # pioche vers joueur
+		self.lastTurnPopup = None
 		self.playerInventory = []
 		self.over = False
 		self.piocheText = pg.font.Font('freesansbold.ttf', fontsize1)
@@ -218,6 +219,8 @@ class pointCityGame:
 	def leftClick(self, mousePos):
 		if self.over:
 			return
+		if len(self.translationsPM) + len(self.translationsPJ) + len(self.translationsMJ) > 0: # clic ignoré si animation en cours
+			return
 		match self.gamePhase:
 			case GPhase.DISCOVER:
 				if self.market.flipCard(mousePos):
@@ -258,7 +261,7 @@ class pointCityGame:
 		self.pioche = self.pioche[1:]
 		card1.resize(2)
 		card2 = self.pioche[0]
-		print("pioche cartes ", card1.Id, " et ", card2.Id)
+		# print("pioche cartes ", card1.Id, " et ", card2.Id)
 		def f1():
 			card2.resize(2)
 			self.pioche = self.pioche[1:]
@@ -285,7 +288,6 @@ class pointCityGame:
 
 		# on déduit d'abord la prod
 		prodRes = self.playerInventory[self.currentPlayer].production
-		print("coût: ", cost, ", prod: ", prodRes, ", current =", self.currentPlayer+1)
 		unpaidRes = []
 		for i in range(5):
 			cost[i] = max(0, cost[i] - prodRes[i])
@@ -338,7 +340,7 @@ class pointCityGame:
 					usedCards.append(ingés.pop())
 					cost[i] -= 1
 				if cost[i] > 0:
-					print("pas de quoi payer : ", i)
+					# print("pas de quoi payer : ", i)
 					return False
 		unpaidRes2 = []
 		for i in unpaidRes:
@@ -351,13 +353,12 @@ class pointCityGame:
 			if canPayOneWithDouble[i]:
 				usedCards.append(doubleResCards[i].pop())
 			else:
-				print("pas de quoi payer : ", i)
+				# print("pas de quoi payer : ", i)
 				return False
 
 		# on enlève les cartes utilisées pour payer
-		print("cartes utilisées:")
+		# print("cartes utilisées:")
 		for c in usedCards:
-			print(c.Id)
 			if c in drawnCards:
 				# si la carte ressource piochée est utilisée pour l'achat, on envoie un signal
 				c.cost = 0
@@ -480,6 +481,9 @@ class pointCityGame:
 			self.gamePhase = GPhase.MARKET
 		self.market.draw(self.gamePhase)
 		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+
+		if len(self.pioche) == 2*(self.nPlayers - 1):
+			self.lastTurnPopup = popUp(self.screen, lastTurnPopUpImage, lastTurnPopUpPos)
 		# pg.time.wait(pauseTime1)
 
 	def computeScores(self):
@@ -549,4 +553,16 @@ class pointCityGame:
 			if not t.done:			
 				t.draw()
 				self.translationsPM.insert(0, t)
+
+		# popup
+		if self.lastTurnPopup != None:
+			self.lastTurnPopup.draw()
+			if self.lastTurnPopup.done:
+				self.lastTurnPopup = None
+				self.market.draw(self.gamePhase)
+				self.screen.fill(backgroundColor, PIBackgroundRect)
+				self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+				for p in self.playerInventory:
+					p.draw()
+
 
