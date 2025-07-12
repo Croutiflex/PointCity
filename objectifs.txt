@@ -1,7 +1,9 @@
 Must have :
+	- départage ex aequo
 	- bug bout qui dépasse : analyse
 	- avatars : sélection & affichage
 	- menu fin de partie
+	- mode 1 joueur
 
 Nice to have :
 	- écran de chargement au lancement du jeu
