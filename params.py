@@ -163,7 +163,7 @@ for i in range(22):
 	jetons.append(pg.transform.smoothscale(pg.image.load("res/jetons/"+str(i)+".png"), (tokenSize, tokenSize)))
 
 # POPUP
-lastTurnPopUpImage = pg.transform.smoothscale(dummyImage, lastTurnPopUpSize)
+lastTurnPopUpImage = pg.transform.smoothscale(pg.image.load("res/dernierTour.png"), lastTurnPopUpSize)
 
 # Joueurs
 playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+".png"), (2*tokenSize2, titleH)) for i in range(4)]
