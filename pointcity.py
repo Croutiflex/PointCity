@@ -58,6 +58,7 @@ class pointCityGame:
 		if isLoadedGame: # partie sauvegardée
 			f = open("saves/save_"+str(saveSlot))
 			mainInfo = f.readline().strip().split('\t')
+			avatars = [int(i) for i in f.readline().strip().split('\t')]
 			saveInfo = f.readlines()
 			f.close()
 			sep = 0
@@ -79,7 +80,7 @@ class pointCityGame:
 			Id = self.currentPlayer
 			print("au tour du joueur ", self.currentPlayer+1)
 			for pos in range(self.nPlayers):
-				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, False))
+				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, avatars[Id], False))
 				Id += 1
 				if Id == self.nPlayers:
 					Id = 0
@@ -133,8 +134,9 @@ class pointCityGame:
 			# joueurs
 			Id = self.startingPlayer
 			print("Joueur ", self.startingPlayer+1, " commence")
+			avatars = random.sample(range(8), k=self.nPlayers)
 			for pos in range(self.nPlayers):
-				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos))
+				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, avatars[Id]))
 				Id += 1
 				if Id == self.nPlayers:
 					Id = 0
@@ -187,6 +189,12 @@ class pointCityGame:
 		mainInfo += "\t" + str(self.currentPlayer)
 		mainInfo += "\t" + str(int(self.gamePhase))
 		f.write(mainInfo)
+
+		# avatars
+		avatars = "\n"
+		for p in self.playerInventory:
+			avatars += str(p.avatarNr) + "\t"
+		f.write(avatars)
 		
 		# jetons
 		for j in self.tokenMarket.tokens:
@@ -489,9 +497,27 @@ class pointCityGame:
 	def computeScores(self):
 		scores = [(i+1, self.playerInventory[i].computeScore()) for i in range(self.nPlayers)]
 		scores.sort(reverse = True, key = lambda x: x[1])
-		print("Joueur ", scores[0][0], " a gagné!")
+		bestScore = scores[0][1]
+		ties = []
 		for (player, score) in scores:
 			print("Score du joueur ", player, ": ", score)
+			if score == bestScore:
+				ties.append(player)
+		if len(ties) > 1:
+			L = [(player, len(self.playerInventory[player-1].resCards)) for (player, score) in scores]
+			L.sort(reverse = True, key = lambda x: x[1]) # si score égal, le(s) joueur(s) ayant le plus de cartes en main gagne(nt)
+			bestN = L[0][1]
+			ties2 = []
+			for (player, n) in L:
+				print("Joueur ", player, " a ", n, " carte(s)")
+				if n == bestN:
+					ties2.append(player)
+			if len(ties2) > 1:
+				print("Ex Aequo! les joueurs ", ties2, " ont gagné!")
+			else:
+				print("Joueur ", ties2[0], " a gagné!")
+		else:
+			print("Joueur ", ties[0], " a gagné!")
 
 	def draw(self):
 		if self.turnsLeft == 0 and len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) == 0: # fin de partie à la fin des animations

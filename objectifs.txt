@@ -1,7 +1,6 @@
 Must have :
-	- départage ex aequo
 	- bug bout qui dépasse : analyse
-	- avatars : sélection & affichage
+	- avatars : sélection
 	- menu fin de partie
 	- mode 1 joueur
 

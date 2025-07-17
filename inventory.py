@@ -2,11 +2,14 @@ from params import *
 import pygame as pg
 from baseObjects import *
 import math
+import random
 
 class pointCityPlayerInventory:
-	def __init__(self, screen, Id, pos, newGame=True):
+	def __init__(self, screen, Id, pos, avatar=-1, newGame=True):
 		self.screen = screen
 		self.pos = pos
+		self.avatarNr = avatar
+		self.avatar = pg.transform.smoothscale(avatarImg[avatar], avatarSize1)
 		self.resCards = []
 		self.batCards = [[] for i in range(5)]
 		self.production = [0 for i in range(5)]
@@ -220,6 +223,8 @@ class pointCityPlayerInventory:
 		if self.pos == 0: # inventaire détaillé
 			# nom du joueur
 			self.screen.blit(playerTitleImg[self.Id], titlePos[self.pos])
+			# avatar
+			self.screen.blit(self.avatar, avatarPos)
 			# jetons
 			for tk in range(len(self.tokens)):
 				self.tokens[tk].draw(self.tokenPosL[tk])

@@ -82,7 +82,10 @@ titleH = 2*fontsize1
 cardH2 = (PIH - 2*space1 - space2)/2.5
 cardSize2 = (cardH2*cardRatio, cardH2)
 tokenSize2 = (PIL/5 + space1*2)/2
-tokenPosL = (PIx + space1, titlePos[0][1] + titleH + space2)
+avatarPos = (PIx + space2, titlePos[0][1] + titleH + space2)
+avatarL = cardSize2[1] - space2 - titleH
+avatarSize1 = (avatarL, avatarL)
+tokenPosL = (PIx + space1, titlePos[0][1] + cardSize2[1] + space2)
 handPosL = (titlePos[0][0] + tokenSize2*2 + space1, titlePos[0][1])
 muniPosL = (handPosL[0] + cardSize2[0]*2.5 + space1, handPosL[1])
 handRect = pg.Rect(handPosL, (muniPosL[0] - handPosL[0] - space1, cardSize2[1])).scale_by(1.05)
@@ -168,3 +171,6 @@ lastTurnPopUpImage = pg.transform.smoothscale(pg.image.load("res/dernierTour.png
 # Joueurs
 playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+".png"), (2*tokenSize2, titleH)) for i in range(4)]
 playerTitleImgSmall = [playerTitleImg[i].subsurface(pg.Rect(0, fontsize1/2, 2*tokenSize2, fontsize1)) for i in range(4)]
+
+# avatars
+avatarImg = [pg.image.load("res/avatars/"+str(i)+".png") for i in range(1,9)]
