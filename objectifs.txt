@@ -1,4 +1,5 @@
 Must have :
+	- taille des jetons inv réduit
 	- bug bout qui dépasse : analyse
 	- avatars : sélection
 	- menu fin de partie
@@ -7,6 +8,8 @@ Must have :
 Nice to have :
 	- écran de chargement au lancement du jeu
 	- animations fluides qui s'adaptent à la framerate
+	- menu options:
+		- vitesse des anim
 
 Could have :
 	- afficher le nb de tours restants
