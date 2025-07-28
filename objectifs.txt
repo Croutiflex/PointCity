@@ -1,5 +1,5 @@
 Must have :
-	- taille des jetons inv réduit
+	- sauvegarde automatique
 	- bug bout qui dépasse : analyse
 	- avatars : sélection
 	- menu fin de partie
@@ -10,6 +10,7 @@ Nice to have :
 	- animations fluides qui s'adaptent à la framerate
 	- menu options:
 		- vitesse des anim
+		- autoSave
 
 Could have :
 	- afficher le nb de tours restants

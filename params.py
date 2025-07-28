@@ -94,7 +94,7 @@ cityPosL = [(handPosL[0], handPosL[1] + cardH2 + space2)]
 cityPosL += [(cityPosL[0][0] + i*(cardSize2[0] + space2), cityPosL[0][1]) for i in range(1,5)]
 
 # inventaire réduit, par joueur après le 1er
-tokenSize3 = PIh - 2*space1 - titleH - space2
+tokenSize3 = PIh - space2 - 2*space1 - fontsize1
 cardH3 = PIh - 2*space1 - fontsize1 - space2
 cardSize3 = (cardH3*cardRatio, cardH3)
 tokenPosl = [(p[0], p[1] + fontsize1 + space1) for p in titlePos[1:]]
