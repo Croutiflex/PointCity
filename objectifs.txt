@@ -1,4 +1,6 @@
 Must have :
+	- payer avec cartes de la main en prio
+	- alerte dernier tour + grand
 	- sauvegarde automatique
 	- bug bout qui dépasse : analyse
 	- avatars : sélection
