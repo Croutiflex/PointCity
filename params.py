@@ -111,13 +111,13 @@ marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
 PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, screenSize[1]))
 
 # popup
-lastTurnPopUpSize = (400, 100)
+lastTurnPopUpSize = (600, 200)
 lastTurnPopUpPos = (screenSize[0]/2 - lastTurnPopUpSize[0]/2, screenSize[1]/2 - lastTurnPopUpSize[1]/2)
 
 ## TIMING
 pauseTime1 = 1500
-translationTime = 30
-translationTime2 = 50
+translationTime = 0.5
+translationTime2 = 2
 
 ## COLORS
 menuBackgroundColor = pg.Color(122,183,191)

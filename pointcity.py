@@ -268,7 +268,7 @@ class pointCityGame:
 						if self.tokensLeft == 0:
 							self.endTurn()
 					pos = self.playerInventory[self.currentPlayer].updateTokenPos()
-					self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f, translationTime2))
+					self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f))
 
 	def directDraw(self):
 		if len(self.pioche) == 0:
@@ -568,8 +568,8 @@ class pointCityGame:
 		# animations
 		if len(self.translationsPJ) > 0:
 			t = self.translationsPJ.pop(0)
-			if not t.done:			
-				t.draw()
+			t.draw()
+			if not t.done:
 				self.translationsPJ.insert(0, t)
 
 		l = len(self.translationsMJ)

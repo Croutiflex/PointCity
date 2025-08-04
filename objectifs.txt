@@ -1,6 +1,5 @@
 Must have :
 	- payer avec cartes de la main en prio
-	- alerte dernier tour + grand
 	- sauvegarde automatique
 	- bug bout qui dépasse : analyse
 	- avatars : sélection
@@ -9,10 +8,9 @@ Must have :
 
 Nice to have :
 	- écran de chargement au lancement du jeu
-	- animations fluides qui s'adaptent à la framerate
 	- menu options:
 		- vitesse des anim
-		- autoSave
+		- activer/désactiver autoSave
 
 Could have :
 	- afficher le nb de tours restants
