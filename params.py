@@ -54,6 +54,7 @@ space2 = 15
 space3 = 25
 cardRatio = 0.66 # H/L
 fontsize1 = 30
+fontsize2 = 50
 
 # adaptables
 cardH = (screenSize[1] - 2*space3 - 3*space2)/4

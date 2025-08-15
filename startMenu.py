@@ -3,6 +3,7 @@ import sys
 from params import *
 from pointcity import *
 from rulesMenu import *
+from playerSelectMenu import *
 
 #dimensions
 bannerY = screenSize[1]/2
@@ -68,11 +69,13 @@ class startMenu:
 		self.screen = screen
 		self.cheatMode = False
 		self.slot = 1
-		self.nPlayers = 1
+		self.nPlayers = None
+		self.avatars = None
 		self.mode = 0
 		self.page = 0
 		self.selectedButton = boutonNr.RIEN
 		self.rules = rulesMenu(screen)
+		self.avSelect = None
 
 	def leftClick(self):
 		PCgame = None
@@ -81,23 +84,27 @@ class startMenu:
 				self.mode = 0
 				self.rules.page = 0
 			self.selectedButton = boutonNr.RIEN
-			return PCgame
-		match self.selectedButton:
-			case boutonNr.X:
-				sys.exit()
-			case boutonNr.REGLES:
-				self.mode = 1
-			case boutonNr.JOUER:
-				self.page = 1
-			case boutonNr.NEWGAME:
-				self.page = 2
-			case boutonNr.PICKNP:
-				PCgame = pointCityGame(self.screen, False, nPlayers=self.nPlayers, cheatMode=self.cheatMode)
-			case boutonNr.LOADGAME:
-				self.page = 3
-			case boutonNr.LOADSAVE:
-				print("chargement partie ", self.slot)
-				PCgame = pointCityGame(self.screen, True, saveSlot=self.slot)
+		elif self.mode == 2:
+			if self.avSelect.leftClick():
+				return pointCityGame(self.screen, False, nPlayers=self.nPlayers, avatars=self.avSelect.selectedAvatar, cheatMode=self.cheatMode)
+		else:
+			match self.selectedButton:
+				case boutonNr.X:
+					sys.exit()
+				case boutonNr.REGLES:
+					self.mode = 1
+				case boutonNr.JOUER:
+					self.page = 1
+				case boutonNr.NEWGAME:
+					self.page = 2
+				case boutonNr.PICKNP:
+					self.avSelect = playerSelectMenu(self.screen, self.nPlayers)
+					self.mode = 2
+				case boutonNr.LOADGAME:
+					self.page = 3
+				case boutonNr.LOADSAVE:
+					print("chargement partie ", self.slot)
+					PCgame = pointCityGame(self.screen, True, saveSlot=self.slot)
 		return PCgame
 
 	def retour(self):
@@ -117,49 +124,52 @@ class startMenu:
 
 	def draw(self):
 		mousePos = pg.mouse.get_pos()
-		if self.mode == 0: # menu principal
-			self.screen.fill(menuBackgroundColor)
-			self.screen.blit(banner, bannerRect)
-			if boutonXRect.collidepoint(mousePos):
-				self.selectedButton = boutonNr.X
-				self.screen.blit(boutonXImg2, boutonXRect)
-			else: 
-				self.selectedButton = boutonNr.RIEN
-				self.screen.blit(boutonXImg, boutonXRect)
-			match self.page:
-				case 0: # menu de départ
-					if bouton1Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.JOUER
-						self.screen.fill(white, bouton1HL)
-					elif bouton2Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.REGLES
-						self.screen.fill(white, bouton2HL)
+		match self.mode: 
+			case 0: # menu principal
+				self.screen.fill(menuBackgroundColor)
+				self.screen.blit(banner, bannerRect)
+				if boutonXRect.collidepoint(mousePos):
+					self.selectedButton = boutonNr.X
+					self.screen.blit(boutonXImg2, boutonXRect)
+				else: 
+					self.selectedButton = boutonNr.RIEN
+					self.screen.blit(boutonXImg, boutonXRect)
+				match self.page:
+					case 0: # menu de départ
+						if bouton1Rect.collidepoint(mousePos):
+							self.selectedButton = boutonNr.JOUER
+							self.screen.fill(white, bouton1HL)
+						elif bouton2Rect.collidepoint(mousePos):
+							self.selectedButton = boutonNr.REGLES
+							self.screen.fill(white, bouton2HL)
 
-					self.screen.blit(boutonPlayImg, bouton1Rect)
-					self.screen.blit(boutonReglesImg, bouton2Rect)
-				case 1: # menu jouer
-					if bouton1Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.NEWGAME
-						self.screen.fill(white, bouton1HL)
-					elif bouton2Rect.collidepoint(mousePos):
-						self.selectedButton = boutonNr.LOADGAME
-						self.screen.fill(white, bouton2HL)
+						self.screen.blit(boutonPlayImg, bouton1Rect)
+						self.screen.blit(boutonReglesImg, bouton2Rect)
+					case 1: # menu jouer
+						if bouton1Rect.collidepoint(mousePos):
+							self.selectedButton = boutonNr.NEWGAME
+							self.screen.fill(white, bouton1HL)
+						elif bouton2Rect.collidepoint(mousePos):
+							self.selectedButton = boutonNr.LOADGAME
+							self.screen.fill(white, bouton2HL)
 
-					self.screen.blit(boutonNewGameImg, bouton1Rect)
-					self.screen.blit(boutonLoadGameImg, bouton2Rect)
-				case 2: # menu sélection nb joueurs
-					for i in range(4):
-						if boutonGroup2[i].collidepoint(mousePos):
-							self.selectedButton = boutonNr.PICKNP
-							self.nPlayers = i+1
-							self.screen.fill(white, boutonHLGroup2[i])
-						self.screen.blit(boutonJImg[i], boutonGroup2[i])
-				case 3: # menu sélection sauvegarde
-					for i in range(4):
-						if not slotIsEmpty[i] and boutonGroup2[i].collidepoint(mousePos):
-							self.selectedButton = boutonNr.LOADSAVE
-							self.slot = i+1
-							self.screen.fill(white, boutonHLGroup2[i])
-						self.screen.blit(boutonSaveImg[i], boutonGroup2[i])
-		else: # menu règles & commandes
-			self.rules.draw()
+						self.screen.blit(boutonNewGameImg, bouton1Rect)
+						self.screen.blit(boutonLoadGameImg, bouton2Rect)
+					case 2: # menu sélection nb joueurs
+						for i in range(4):
+							if boutonGroup2[i].collidepoint(mousePos):
+								self.selectedButton = boutonNr.PICKNP
+								self.nPlayers = i+1
+								self.screen.fill(white, boutonHLGroup2[i])
+							self.screen.blit(boutonJImg[i], boutonGroup2[i])
+					case 3: # menu sélection sauvegarde
+						for i in range(4):
+							if not slotIsEmpty[i] and boutonGroup2[i].collidepoint(mousePos):
+								self.selectedButton = boutonNr.LOADSAVE
+								self.slot = i+1
+								self.screen.fill(white, boutonHLGroup2[i])
+							self.screen.blit(boutonSaveImg[i], boutonGroup2[i])
+			case 1: # menu règles & commandes
+				self.rules.draw()
+			case 2: # menu sélection avatars
+				self.avSelect.draw()

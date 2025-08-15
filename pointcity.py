@@ -9,7 +9,7 @@ from inventory import *
 from popup import *
 
 class pointCityGame:
-	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False):
+	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False, avatars=None):
 		self.screen = screen
 		self.cheatMode = cheatMode
 		self.autoSave = True
@@ -135,7 +135,8 @@ class pointCityGame:
 			# joueurs
 			Id = self.startingPlayer
 			print("Joueur ", self.startingPlayer+1, " commence")
-			avatars = random.sample(range(8), k=self.nPlayers)
+			if avatars == None:
+				avatars = random.sample(range(8), k=self.nPlayers)
 			for pos in range(self.nPlayers):
 				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, avatars[Id]))
 				Id += 1
