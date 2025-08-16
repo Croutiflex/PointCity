@@ -113,7 +113,7 @@ PIBackgroundRect = pg.Rect((piochePos[0] - space2, 0), (screenSize[0] - PIx, scr
 
 # popup
 lastTurnPopUpSize = (600, 200)
-lastTurnPopUpPos = (screenSize[0]/2 - lastTurnPopUpSize[0]/2, screenSize[1]/2 - lastTurnPopUpSize[1]/2)
+popUpPos = (screenSize[0]/2, screenSize[1]/2)
 
 ## TIMING
 pauseTime1 = 1500
@@ -123,6 +123,7 @@ translationTime2 = 2
 ## COLORS
 menuBackgroundColor = pg.Color(122,183,191)
 backgroundColor = pg.Color(200,200,200)
+transparent = pg.Color(100,100,100, 128)
 textColor = pg.Color(120,0,60)
 white = pg.Color(255,255,255)
 darkBlue = pg.Color(20,0,77)
@@ -175,3 +176,10 @@ playerTitleImgSmall = [playerTitleImg[i].subsurface(pg.Rect(0, fontsize1/2, 2*to
 
 # avatars
 avatarImg = [pg.image.load("res/avatars/"+str(i)+".png") for i in range(1,9)]
+
+
+# UTILS
+def draw_rect_alpha(surface, color, rect):
+    shape_surf = pg.Surface(pg.Rect(rect).size, pg.SRCALPHA)
+    pg.draw.rect(shape_surf, color, shape_surf.get_rect())
+    surface.blit(shape_surf, rect)

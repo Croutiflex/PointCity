@@ -20,7 +20,8 @@ class pointCityGame:
 		self.translationsMJ = [] # marché vers joueur
 		self.translationsPM = [] # pioche vers marché
 		self.translationsPJ = [] # pioche vers joueur
-		self.lastTurnPopup = popUp(self.screen, lastTurnPopUpImage, lastTurnPopUpPos)
+		self.lastTurnPopup = popUp(self.screen, lastTurnPopUpImage, popUpPos)
+		self.newTurnPopup = nextTurnPopUp(self.screen, pg.transform.smoothscale(avatarImg[0], avatarSize1), popUpPos)
 		self.playerInventory = []
 		self.over = False
 		self.piocheText = pg.font.Font('freesansbold.ttf', fontsize1)
@@ -227,17 +228,17 @@ class pointCityGame:
 		self.saveGame(self.nPlayers)
 
 	def leftClick(self, mousePos):
-		if self.lastTurnPopup.on:
-			self.lastTurnPopup.on = False
-			self.screen.fill(backgroundColor, PIBackgroundRect)
-			self.market.draw(self.gamePhase)
-			self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
-			for p in self.playerInventory:
-				p.draw()
-			return
 		if self.over:
 			return
 		if len(self.translationsPM) + len(self.translationsPJ) + len(self.translationsMJ) > 0: # clic ignoré si animation en cours
+			return
+		if self.lastTurnPopup.on: # fermeture popup dernier tour
+			self.lastTurnPopup.on = False
+			self.drawFull()
+			return
+		if self.newTurnPopup.on: # fermeture popup tour suivant
+			self.newTurnPopup.on = False
+			self.drawFull()
 			return
 		match self.gamePhase:
 			case GPhase.DISCOVER:
@@ -500,6 +501,9 @@ class pointCityGame:
 		self.market.draw(self.gamePhase)
 		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
 
+		self.newTurnPopup.setNextPlayer(self.playerInventory[self.currentPlayer].avatar, self.currentPlayer)
+		self.newTurnPopup.on = True
+
 		if len(self.pioche) == 2*(self.nPlayers - 1):
 			self.lastTurnPopup.on = True
 		# pg.time.wait(pauseTime1)
@@ -528,6 +532,13 @@ class pointCityGame:
 				print("Joueur ", ties2[0], " a gagné!")
 		else:
 			print("Joueur ", ties[0], " a gagné!")
+
+	def drawFull(self):
+		self.screen.fill(backgroundColor, PIBackgroundRect)
+		self.market.draw(self.gamePhase)
+		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+		for p in self.playerInventory:
+			p.draw()
 
 	def draw(self):
 		if self.turnsLeft == 0 and len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) == 0: # fin de partie à la fin des animations
@@ -590,6 +601,8 @@ class pointCityGame:
 				t.draw()
 				self.translationsPM.insert(0, t)
 
-		# popup
+		# popups
+		if self.newTurnPopup.on:
+			self.newTurnPopup.draw()
 		if self.lastTurnPopup.on:
-			self.lastTurnPopup.drawSingle()
+			self.lastTurnPopup.draw()
