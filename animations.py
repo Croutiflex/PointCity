@@ -22,7 +22,7 @@ class translation:
 
 	def draw(self):
 		if not self.done:
-			print('elapsedTime: ', self.elapsedTime)
+			# print('elapsedTime: ', self.elapsedTime)
 			self.screen.blit(self.image, self.currentPos)
 			if self.lastFrameTime == None: # premier draw
 				self.lastFrameTime = time.time()
