@@ -39,21 +39,27 @@ class popUp:
 class nextTurnPopUp(popUp):
 	def __init__(self, screen, image, pos, timed=False, duration=2):
 		super().__init__(screen, image, pos, timed, duration)
-		self.rect.center = (pos[0], pos[1] - screenSize[1]/10)
+		self.avatarRect = self.rect
+		self.avatarRect.center = (pos[0], pos[1] - screenSize[1]/10)
+		self.rect = pg.Rect(0,0,screenSize[0]/2.5, screenSize[1]/3)
+		self.rect.center = pos
 		self.playerImage = playerTitleImg[0]
 		self.playerRect = self.playerImage.get_rect()
 		self.playerRect.center = (pos[0] - self.playerRect.w/2 - space2, pos[1] + screenSize[1]/20)
 		font = pg.font.Font('freesansbold.ttf', fontsize2)
-		self.text = font.render(str("C'est à vous!"), True, darkBlue, backgroundColor)
+		self.text = font.render(str("C'est à vous!"), True, white, darkBlue)
 		self.textRect = self.text.get_rect()
 		self.textRect.center = (pos[0] + self.textRect.w/2 + space2, pos[1] + screenSize[1]/20)
+		# self.BGColor = playerColors[0]
 
 	def setNextPlayer(self, avatar, player):
 		self.image = avatar
 		self.playerImage = playerTitleImg[player]
+		# self.BGColor = playerColors[player]
 
 	def drawSingle(self):
-		super().drawSingle()
+		self.screen.fill(darkBlue, self.rect)
+		self.screen.blit(self.image, self.avatarRect)
 		self.screen.blit(self.playerImage, self.playerRect)
 		self.screen.blit(self.text, self.textRect)
 

@@ -123,9 +123,10 @@ class pointCityGame:
 						self.playerInventory[place-1].addInge()
 					else:
 						side = int(L[2])
+						allCards[Id].resize(2 if place - 1 == self.currentPlayer else 3)
 						if side == BATIMENT:
 							allCards[Id].flip()
-						allCards[Id].resize(2 if place - 1 == self.currentPlayer else 3)
+							allCards[Id].resize(2)
 						self.playerInventory[place-1].addCard(allCards[Id])
 			# for p in self.playerInventory:
 			# 	print("Joueur ", p.Id+1, ", prod:", p.production)
@@ -484,7 +485,7 @@ class pointCityGame:
 	def endTurn(self):
 		self.turnsLeft -= 1
 		self.turn += 1
-		# print("Tour ", self.turn)
+		print("Tour ", self.turn)
 		if self.turnsLeft == 0:
 			return
 		self.currentPlayer += 1

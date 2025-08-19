@@ -7,7 +7,7 @@ import time
 # duration = durée de l'animation en s
 class translation:
 	def __init__(self, screen, image, A, B, onDone, duration=translationTime):
-		print('Nouvelle anim')
+		# print('Nouvelle anim')
 		self.screen = screen
 		self.image = image
 		self.A = A
