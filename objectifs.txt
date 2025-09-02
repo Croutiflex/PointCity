@@ -1,8 +1,8 @@
 Must have :
+	- bug : clic droit pendant popup
 	- payer avec cartes de la main en prio
 	- sauvegarde automatique
 	- bug bout qui dépasse : analyse
-	- avatars : sélection
 	- menu fin de partie
 	- mode 1 joueur
 
