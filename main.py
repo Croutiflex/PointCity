@@ -6,6 +6,7 @@ from pointcity import *
 from startMenu import *
 from mainMenu import *
 from params import *
+from endScreen import *
 
 def main():
 
@@ -19,11 +20,12 @@ def main():
 	StartMenu = startMenu(screen)
 	MainMenu = mainMenu(screen)
 	PCGame = None
+	EndScreen = None
 	state = "STARTMENU"
 
 	# test
-	image = reglesImg[1]
-	mySurface = pg.Surface((screenSize[0]/2, screenSize[1]))
+	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(4)])
+	# state = "END"
 
 	# frame loop
 	while 1:
@@ -60,16 +62,18 @@ def main():
 						case pg.KEYDOWN:
 							match event.key:
 								case pg.K_ESCAPE:
-									MainMenu.retour()
+									if MainMenu.retour():
+										state = "GAME"
+										MainMenu.isActive = False
+										PCGame.firstDraw()
 				if MainMenu.redrawGame:
 					PCGame.firstDraw()
 					MainMenu.redrawGame = False
 			case "GAME":
 				PCGame.draw()
 				if PCGame.over:
-					PCGame.computeScores()
+					EndScreen = PCGame.computeScores()
 					state = "END"
-					break
 				for event in pg.event.get():
 					match event.type:
 						case pg.QUIT: sys.exit()
@@ -84,7 +88,7 @@ def main():
 									state = "MAINMENU"
 									MainMenu.isActive = True
 			case "END":
-				pass
+				EndScreen.draw()
 			case "TEST":
 				# screen.fill(backgroundColor)
 				mySurface.fill(red)

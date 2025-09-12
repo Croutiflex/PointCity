@@ -7,6 +7,7 @@ from market import *
 from animations import *
 from inventory import *
 from popup import *
+from endScreen import *
 
 class pointCityGame:
 	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False, avatars=None):
@@ -233,13 +234,7 @@ class pointCityGame:
 			return
 		if len(self.translationsPM) + len(self.translationsPJ) + len(self.translationsMJ) > 0: # clic ignoré si animation en cours
 			return
-		if self.lastTurnPopup.on: # fermeture popup dernier tour
-			self.lastTurnPopup.on = False
-			self.drawFull()
-			return
-		if self.newTurnPopup.on: # fermeture popup tour suivant
-			self.newTurnPopup.on = False
-			self.drawFull()
+		if self.closePopups():
 			return
 		match self.gamePhase:
 			case GPhase.DISCOVER:
@@ -292,10 +287,12 @@ class pointCityGame:
 		self.translationsPJ.append(translation(self.screen, card1.getImage(), piochePos, handPosL, f1))
 		self.translationsPJ.append(translation(self.screen, card2.getImage(2), piochePos, handPosL, f2))
 
-	# compare le coût des batiments sélectionnés et les ressources du joueur. Renvoie True si l'achat est possible.
-	def checkCost(self, cards):
+	# Check si l'achat est possible.
+	# /!\ au moins une des cartes sélectionnées doit être un bâtiment.
+	# renvoie (x, y) où x = True si achat possible et y = la carte res du marché utilisée pour payer s'il y a.
+	def checkPayment(self, cards):
 		if self.cheatMode:
-			return True
+			return (True, None, None)
 		cost = [0 for i in range(5)]
 
 		drawnCards = []
@@ -314,25 +311,56 @@ class pointCityGame:
 			if cost[i] > 0:
 				unpaidRes.append(i)
 		if len(unpaidRes) == 0:
-			return True
+			return (True, cost, None)
 
-		# ressources simples & doubles
+		handCards = self.playerInventory[self.currentPlayer].selectedCards
+		if self.canPay(handCards, cost):
+			return (True, cost, None)
+ 
+		if len(drawnCards) == 1 and self.canPay(handCards + drawnCards, cost):
+			return (True, cost, drawnCards[0])
+
+		return (False, cost, None)
+
+	def canPay(self, ressources, cost):
+		res = [0 for i in range(6)]
+		cost2 = [0 for i in range(5)]
+		reste = 0
+		for c in ressources:
+			n = 2 if c.tier > 0 and c.ressource != INGENIEUR else 1
+			res[c.ressource] += n
+		for i in range(5):
+			cost2[i] = max(0, cost[i] - res[i])
+			reste += cost2[i]
+		return reste <= res[5]
+
+	# Effectue le paiement en déduisant les cartes ressources utilisées.
+	# prérequis : le paiement est possible et on utilise d'office la carte marketRes si elle existe.
+	def makePayment(self, cost, marketRes):
+		if cost == None:
+			return
+
+		unpaidRes = [i for i in range(5) if cost[i] > 0]
+
+		resCards = self.playerInventory[self.currentPlayer].selectedCards
+		if marketRes != None:
+			resCards.append(marketRes)
+
+		# on sépare les ressources simples, doubles & ingés
 		doubleResCards = {}
-		simpleResCards = {}
+		singleResCards = {}
 		for i in range(5):
 			doubleResCards[i] = []
-			simpleResCards[i] = []
+			singleResCards[i] = []
 		ingés = []
-		handCards = self.playerInventory[self.currentPlayer].selectedCards
-		# ressources sélectionnées dans la main + carte piochée s'il y a
-		for c in handCards + drawnCards:
+		for c in resCards:
 			if c.ressource == INGENIEUR:
 				ingés.append(c)
 			elif c.ressource in unpaidRes:
 				if c.tier > 0:
 					doubleResCards[c.ressource].append(c)
 				else:
-					simpleResCards[c.ressource].append(c)
+					singleResCards[c.ressource].append(c)
 
 		usedCards = []
 		canPayOneWithDouble = [False for i in range(5)]
@@ -341,8 +369,8 @@ class pointCityGame:
 			while cost[i] > 1 and len(doubleResCards[i]) > 0:
 				usedCards.append(doubleResCards[i].pop())
 				cost[i] -= 2
-			while cost[i] > 0 and len(simpleResCards[i]) > 0:
-				usedCards.append(simpleResCards[i].pop())
+			while cost[i] > 0 and len(singleResCards[i]) > 0:
+				usedCards.append(singleResCards[i].pop())
 				cost[i] -= 1
 			if cost[i] > 0 and len(doubleResCards[i]) > 0:
 				canPayOneWithDouble[i] = True
@@ -359,9 +387,6 @@ class pointCityGame:
 				while cost[i] > 0 and len(ingés) > 0:
 					usedCards.append(ingés.pop())
 					cost[i] -= 1
-				if cost[i] > 0:
-					# print("pas de quoi payer : ", i)
-					return False
 		unpaidRes2 = []
 		for i in unpaidRes:
 			if cost[i] > 0:
@@ -372,19 +397,12 @@ class pointCityGame:
 		for i in unpaidRes:
 			if canPayOneWithDouble[i]:
 				usedCards.append(doubleResCards[i].pop())
-			else:
-				# print("pas de quoi payer : ", i)
-				return False
 
-		# on enlève les cartes utilisées pour payer
-		# print("cartes utilisées:")
+		# on enlève de la main les cartes utilisées pour payer
 		for c in usedCards:
-			if c in drawnCards:
-				# si la carte ressource piochée est utilisée pour l'achat, on envoie un signal
-				c.cost = 0
-			else:
+			if c != marketRes:
 				self.playerInventory[self.currentPlayer].resCards.remove(c)
-		return True
+		self.playerInventory[self.currentPlayer].resetSelection()
 
 	def drawFromMarket(self, selcards):
 		(i,j) = selcards[0]
@@ -402,13 +420,16 @@ class pointCityGame:
 			if card2.type == "municipal":
 				municipalDrawn += 1
 
-		if batDrawn > 0 and not self.checkCost([card1, card2]): # si achat pas possible
-			self.playerInventory[self.currentPlayer].resetSelection()
-			self.market.drawSingleCard((i,j), red)
-			self.market.drawSingleCard((k,l), red)
-			return
+		if batDrawn > 0:
+			(payOK, costLeft, marketResUsed) = self.checkPayment([card1, card2])
+			print("checkPayment; ", payOK, costLeft, marketResUsed)
+			if payOK: 															# si achat possible
+				self.makePayment(costLeft, marketResUsed)
+			else:
+				self.market.drawSingleCard((i,j), red)
+				self.market.drawSingleCard((k,l), red)
+				return
 
-		self.playerInventory[self.currentPlayer].resetSelection()
 		card1.resize(2)
 		card2.resize(2)
 
@@ -417,9 +438,9 @@ class pointCityGame:
 		def f2():
 			self.playerInventory[self.currentPlayer].addCard(card2)
 
-		# marché vers joueur
+		# animations marché vers joueur
 		if card1.side == RESSOURCE:
-			if card1.cost != 0: # si la carte n'a pas été utilisée pour l'achat
+			if batDrawn == 0 or marketResUsed == None: # si la carte du marché n'a pas été utilisée pour l'achat
 				self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
 		else:
 			pos = muniPosL
@@ -430,7 +451,7 @@ class pointCityGame:
 			self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
 
 		if card2.side == RESSOURCE:
-			if card2.cost != 0: # si la carte n'a pas été utilisée pour l'achat
+			if batDrawn == 0 or marketResUsed == None: # si la carte n'a pas été utilisée pour l'achat
 				self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
 		else:
 			pos = muniPosL
@@ -451,7 +472,7 @@ class pointCityGame:
 				self.endTurn()
 			return
 
-		# pioche vers marché
+		# animations pioche vers marché
 		newcard1 = self.pioche[0]
 		newcard2 = self.pioche[1]
 		if card1.side == RESSOURCE:
@@ -474,6 +495,8 @@ class pointCityGame:
 		self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
 
 	def rightClick(self):
+		if self.closePopups():
+			return
 		match self.gamePhase:
 			case GPhase.DISCOVER:
 				self.gamePhase = GPhase.MARKET
@@ -481,6 +504,17 @@ class pointCityGame:
 				self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
 			case GPhase.MARKET:
 				self.market.cancelSelect()
+
+	def closePopups(self):
+		if self.lastTurnPopup.on: # fermeture popup dernier tour
+			self.lastTurnPopup.on = False
+			self.drawFull()
+			return True
+		if self.newTurnPopup.on: # fermeture popup tour suivant
+			self.newTurnPopup.on = False
+			self.drawFull()
+			return True
+		return False
 
 	def endTurn(self):
 		self.turnsLeft -= 1
@@ -510,29 +544,7 @@ class pointCityGame:
 		# pg.time.wait(pauseTime1)
 
 	def computeScores(self):
-		scores = [(i+1, self.playerInventory[i].computeScore()) for i in range(self.nPlayers)]
-		scores.sort(reverse = True, key = lambda x: x[1])
-		bestScore = scores[0][1]
-		ties = []
-		for (player, score) in scores:
-			print("Score du joueur ", player, ": ", score)
-			if score == bestScore:
-				ties.append(player)
-		if len(ties) > 1:
-			L = [(player, len(self.playerInventory[player-1].resCards)) for (player, score) in scores]
-			L.sort(reverse = True, key = lambda x: x[1]) # si score égal, le(s) joueur(s) ayant le plus de cartes en main gagne(nt)
-			bestN = L[0][1]
-			ties2 = []
-			for (player, n) in L:
-				print("Joueur ", player, " a ", n, " carte(s)")
-				if n == bestN:
-					ties2.append(player)
-			if len(ties2) > 1:
-				print("Ex Aequo! les joueurs ", ties2, " ont gagné!")
-			else:
-				print("Joueur ", ties2[0], " a gagné!")
-		else:
-			print("Joueur ", ties[0], " a gagné!")
+		return endScreen(self.screen, [(p.avatarNr, p.computeScore(), len(p.resCards)) for p in self.playerInventory])
 
 	def drawFull(self):
 		self.screen.fill(backgroundColor, PIBackgroundRect)

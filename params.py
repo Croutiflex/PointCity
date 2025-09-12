@@ -49,6 +49,8 @@ matos = [matos1, matos2, matos3, matos4]
 
 # constantes
 screenSize = (1920, 1080)
+midx = screenSize[0]/2
+midy = screenSize[1]/2
 space1 = 5
 space2 = 15
 space3 = 25

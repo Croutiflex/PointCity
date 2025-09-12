@@ -83,14 +83,18 @@ class mainMenu:
 		return False
 
 	def retour(self):
+		ret = False
 		if self.mode == 0: # menu principal
 			if self.page == 1:
 				self.page = 0
+			elif self.page == 0:
+				ret = True
 		elif self.mode == 1: # menu règles
 			self.mode = 0
 			self.rules.page = 0
 			self.redrawGame = True
 		self.selectedButton = boutonNr.RIEN
+		return ret
 
 	def draw(self):
 		mousePos = pg.mouse.get_pos()
