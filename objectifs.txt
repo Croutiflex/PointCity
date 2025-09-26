@@ -1,11 +1,11 @@
 Must have :
-	- menu fin de partie
+	- curseur custo : débug draw
+	- sauvegarde meilleurs scores
 	- mode 1 joueur
 	- nouveaux avatars
-	- curseur custo
-	- scoreboard
 	- sauvegarde automatique
 	- bug bout qui dépasse : analyse
+	- chantier polices
 
 Nice to have :
 	- écran de chargement au lancement du jeu

@@ -1,5 +1,6 @@
 import numpy as np
 import pygame as pg
+pg.init()
 import sys
 import random
 from pointcity import *
@@ -11,11 +12,11 @@ from endScreen import *
 def main():
 
 	# setup
-	pg.init()
 	screen = pg.display.set_mode(screenSize, pg.SCALED | pg.FULLSCREEN)
 	pg.display.set_caption('Show Text')
 	screen.fill(backgroundColor)
 	pg.display.flip()
+	# pg.mouse.set_visible(False)
 
 	StartMenu = startMenu(screen)
 	MainMenu = mainMenu(screen)
@@ -24,7 +25,7 @@ def main():
 	state = "STARTMENU"
 
 	# test
-	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(4)])
+	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(2)])
 	# state = "END"
 
 	# frame loop
@@ -73,6 +74,7 @@ def main():
 				PCGame.draw()
 				if PCGame.over:
 					EndScreen = PCGame.computeScores()
+					EndScreen.draw()
 					state = "END"
 				for event in pg.event.get():
 					match event.type:
@@ -89,6 +91,9 @@ def main():
 									MainMenu.isActive = True
 			case "END":
 				EndScreen.draw()
+				for event in pg.event.get():
+					if event.type == pg.MOUSEBUTTONDOWN or event.type ==pg.KEYDOWN:
+						sys.exit()
 			case "TEST":
 				# screen.fill(backgroundColor)
 				mySurface.fill(red)
@@ -100,6 +105,7 @@ def main():
 							match event.key:
 								case pg.K_RETURN:
 									sys.exit()
+		# screen.blit(cursorImg, pg.mouse.get_pos())
 		pg.display.flip()
 
 if __name__ == '__main__':

@@ -49,6 +49,7 @@ matos = [matos1, matos2, matos3, matos4]
 
 # constantes
 screenSize = (1920, 1080)
+cursorSize = (30, 30)
 midx = screenSize[0]/2
 midy = screenSize[1]/2
 space1 = 5
@@ -136,6 +137,7 @@ playerColors = [pg.Color(204,153,255), pg.Color(255,204,153), pg.Color(153,255,1
 
 ## IMAGES
 dummyImage = pg.image.load("res/batiments/dummy.png")
+cursorImg = pg.transform.smoothscale(pg.image.load("res/cursor.png"), cursorSize)
 # RESSOURCES
 ImgRes = []
 ImgRes.append(pg.transform.smoothscale(pg.image.load("res/commu.png"), cardSize))
