@@ -9,11 +9,11 @@ avL2 = screenSize[1]/8
 avatarSize2 = (avL2, avL2)
 avatarImgs = [pg.transform.smoothscale(av, avatarSize2) for av in avatarImg]
 avatarRect = [av.get_rect() for av in avatarImgs]
-for i in range(4):
-	avatarRect[i].center = ((1+i)*screenSize[0]/5, screenSize[1]/2)
+for i in range(6):
+	avatarRect[i].center = ((1+i)*screenSize[0]/7, screenSize[1]/2)
 
-for i in range(4):
-	avatarRect[i+4].center = ((1+i)*screenSize[0]/5, screenSize[1]*3/4)
+for i in range(6):
+	avatarRect[i+6].center = ((1+i)*screenSize[0]/7, screenSize[1]*3/4)
 
 avatarHL = [avR.scale_by(HLratio) for avR in avatarRect]
 
@@ -67,7 +67,7 @@ class playerSelectMenu:
 			self.currentButton = None
 			self.screen.blit(boutonXImg, boutonXRect)
 
-		for i in range(8):
+		for i in range(12):
 			if i not in self.selectedAvatar:
 				if avatarRect[i].collidepoint(mousePos):
 					self.currentButton = i

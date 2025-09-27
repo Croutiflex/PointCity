@@ -1,9 +1,8 @@
 Must have :
-	- sauvegarde meilleurs scores
-	- mode 1 joueur
 	- nouveaux avatars
+	- mode 1 joueur
+	- sauvegarde & affichage meilleurs scores
 	- sauvegarde automatique
-	- bug bout qui dépasse : analyse
 	- chantier polices
 
 Nice to have :

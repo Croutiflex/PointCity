@@ -179,7 +179,7 @@ playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+"
 playerTitleImgSmall = [playerTitleImg[i].subsurface(pg.Rect(0, fontsize1/2, 2*tokenSize2, fontsize1)) for i in range(4)]
 
 # avatars
-avatarImg = [pg.image.load("res/avatars/"+str(i)+".png") for i in range(1,9)]
+avatarImg = [pg.image.load("res/avatars/"+str(i)+".png") for i in range(1,13)]
 
 
 # UTILS
