@@ -1,5 +1,4 @@
 Must have :
-	- curseur custo : débug draw
 	- sauvegarde meilleurs scores
 	- mode 1 joueur
 	- nouveaux avatars

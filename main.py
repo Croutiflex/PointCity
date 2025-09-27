@@ -16,7 +16,7 @@ def main():
 	pg.display.set_caption('Show Text')
 	screen.fill(backgroundColor)
 	pg.display.flip()
-	# pg.mouse.set_visible(False)
+	pg.mouse.set_visible(False)
 
 	StartMenu = startMenu(screen)
 	MainMenu = mainMenu(screen)
@@ -49,6 +49,7 @@ def main():
 								case pg.K_RETURN:
 									StartMenu.cheatOrNotCheat()
 			case "MAINMENU":
+				PCGame.draw()
 				MainMenu.draw()
 				for event in pg.event.get():
 					match event.type:
@@ -105,7 +106,7 @@ def main():
 							match event.key:
 								case pg.K_RETURN:
 									sys.exit()
-		# screen.blit(cursorImg, pg.mouse.get_pos())
+		screen.blit(cursorImg, pg.mouse.get_pos())
 		pg.display.flip()
 
 if __name__ == '__main__':

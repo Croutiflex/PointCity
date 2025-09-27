@@ -111,7 +111,7 @@ class pointCityMarket:
 
 	def draw(self, gamePhase):
 		(x,y) = self.findCard(pg.mouse.get_pos())
-		self.screen.fill(backgroundColor, marketBackgroundRect)
+		# self.screen.fill(backgroundColor, marketBackgroundRect)
 		match gamePhase:
 			case GPhase.DISCOVER:
 				for i in range(4):
@@ -134,7 +134,7 @@ class pointCityMarket:
 				if self.cards[i][j] != None:
 					self.cards[i][j].draw(self.cardPos[i][j])
 
-	def lazyDraw(self, gamePhase):
+	def lazyDraw(self, gamePhase): # deprecated
 		(x,y) = self.findCard(pg.mouse.get_pos())
 		(a,b) = self.lastMousePos
 		if (x,y) == (a,b):

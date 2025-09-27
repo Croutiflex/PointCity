@@ -219,6 +219,10 @@ class pointCityPlayerInventory:
 			self.batCards[ressource][i].draw(self.cityPosL[ressource][i])
 
 	def draw(self, isMarketPhase=False):
+		if isMarketPhase:
+			isOnHand = handRect.collidepoint(pg.mouse.get_pos())
+			if isOnHand != self.mouseWasOnHand:
+				self.mouseWasOnHand = isOnHand
 		self.screen.fill(playerColors[self.Id], PIRect[self.pos])
 		if self.pos == 0: # inventaire détaillé
 			# nom du joueur
@@ -266,7 +270,7 @@ class pointCityPlayerInventory:
 			rect.center = pointBubbleCenter[self.pos-1]
 			self.screen.blit(pText, rect)
 
-	def lazyDraw(self, isMarketPhase=False):
+	def lazyDraw(self, isMarketPhase=False): # deprecated
 		if isMarketPhase:
 			isOnHand = handRect.collidepoint(pg.mouse.get_pos())
 			if isOnHand != self.mouseWasOnHand:

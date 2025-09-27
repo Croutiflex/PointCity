@@ -558,24 +558,12 @@ class pointCityGame:
 			self.over = True
 			return
 
-		# marché & jetons
-		if len(self.translationsMJ) + len(self.translationsPM) > 0:
-			self.market.draw(self.gamePhase)
-			self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
-		else:
-			self.market.lazyDraw(self.gamePhase)
-			self.tokenMarket.lazyDraw(self.gamePhase == GPhase.TOKEN)
-
-		# joueurs
-		if len(self.translationsMJ) + len(self.translationsPJ) > 0:
-			self.screen.fill(backgroundColor, PIBackgroundRect)
-			self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
-			for p in self.playerInventory:
-				p.draw()
-		else:
-			self.tokenMarket.lazyDraw(self.gamePhase == GPhase.TOKEN)
-			for p in self.playerInventory:
-				p.lazyDraw(self.gamePhase==GPhase.MARKET)
+		# marché, jetons & joueurs
+		self.screen.fill(backgroundColor)
+		self.market.draw(self.gamePhase)
+		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+		for p in self.playerInventory:
+			p.draw(self.gamePhase == GPhase.MARKET)
 
 		mousePos = pg.mouse.get_pos()
 
