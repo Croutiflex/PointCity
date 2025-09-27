@@ -25,7 +25,7 @@ def main():
 	state = "STARTMENU"
 
 	# test
-	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(2)])
+	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(4)])
 	# state = "END"
 
 	# frame loop

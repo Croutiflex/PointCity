@@ -138,6 +138,7 @@ playerColors = [pg.Color(204,153,255), pg.Color(255,204,153), pg.Color(153,255,1
 ## IMAGES
 dummyImage = pg.image.load("res/batiments/dummy.png")
 cursorImg = pg.transform.smoothscale(pg.image.load("res/cursor.png"), cursorSize)
+backGround = pg.image.load("res/bg.png")
 # RESSOURCES
 ImgRes = []
 ImgRes.append(pg.transform.smoothscale(pg.image.load("res/commu.png"), cardSize))

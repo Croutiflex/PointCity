@@ -1,8 +1,8 @@
 Must have :
-	- nouveaux avatars
 	- mode 1 joueur
 	- sauvegarde & affichage meilleurs scores
 	- sauvegarde automatique
+	- revamp popup tour
 	- chantier polices
 
 Nice to have :

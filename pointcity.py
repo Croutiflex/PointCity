@@ -558,8 +558,9 @@ class pointCityGame:
 			self.over = True
 			return
 
-		# marché, jetons & joueurs
 		self.screen.fill(backgroundColor)
+
+		# marché, jetons & joueurs
 		self.market.draw(self.gamePhase)
 		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
 		for p in self.playerInventory:
