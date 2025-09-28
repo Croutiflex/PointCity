@@ -138,6 +138,10 @@ class pointCityGame:
 			# 	print("Joueur ", p.Id+1, ", prod:", p.production)
 			self.market = pointCityMarket(screen, marketCards, self.modeSolo)
 			self.market.updateFlip()
+			if self.modeSolo:
+				x = sum(matos2[:3]) - len(self.pioche) - 16 # nombre de cartes jouées
+				for i in range((x//4)%4):
+					self.market.moveAutomaCards()
 			self.tokensLeft = len(self.playerInventory[self.currentPlayer].muniBats) - len(self.playerInventory[self.currentPlayer].tokens)
 		else: # nouvelle partie
 			# joueurs
@@ -427,7 +431,7 @@ class pointCityGame:
 
 		if batDrawn > 0:
 			(payOK, costLeft, marketResUsed) = self.checkPayment([card1, card2])
-			print("checkPayment; ", payOK, costLeft, marketResUsed)
+			# print("checkPayment; ", payOK, costLeft, marketResUsed)
 			if payOK: 															# si achat possible
 				self.makePayment(costLeft, marketResUsed)
 			else:
@@ -643,8 +647,12 @@ class pointCityGame:
 		for p in self.playerInventory:
 			p.draw()
 
+	# est-ce qu'il y a des anim. en cours?
+	def isAnimating(self):
+		return len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) > 0
+
 	def draw(self):
-		if self.turnsLeft == 0 and len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) == 0: # fin de partie à la fin des animations
+		if self.turnsLeft == 0 and not self.isAnimating(): # fin de partie à la fin des animations
 			self.over = True
 			return
 

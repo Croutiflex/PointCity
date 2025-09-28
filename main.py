@@ -31,6 +31,7 @@ def main():
 
 	# frame loop
 	while 1:
+		mousePos = pg.mouse.get_pos()
 		match state:
 			case "STARTMENU":
 				StartMenu.draw()
@@ -76,16 +77,16 @@ def main():
 				PCGame.draw()
 				if PCGame.over:
 					EndScreen = PCGame.computeScores()
-					EndScreen.draw()
 					state = "END"
 				for event in pg.event.get():
 					match event.type:
 						case pg.QUIT: sys.exit()
 						case pg.MOUSEBUTTONDOWN:
 							if event.button == 1:
-								PCGame.leftClick(pg.mouse.get_pos())
+								PCGame.leftClick(mousePos)
 							elif event.button == 3:
 								PCGame.rightClick()
+							PCGame.draw()
 						case pg.KEYDOWN:
 							match event.key:
 								case pg.K_ESCAPE:
@@ -107,7 +108,8 @@ def main():
 							match event.key:
 								case pg.K_RETURN:
 									sys.exit()
-		screen.blit(cursorImg, pg.mouse.get_pos())
+
+		screen.blit(cursorImg, mousePos)
 		pg.display.flip()
 
 if __name__ == '__main__':

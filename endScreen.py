@@ -48,7 +48,7 @@ class endScreen:
 		# tri par score + nb de cartes
 		order = [i for i in range(len(playerList))]
 		order.sort(reverse = True, key = lambda i: playerList[i][1]*100 + playerList[i][2])
-		print("scores: ", [playerList[i] for i in order])
+		# print("scores: ", [playerList[i] for i in order])
 
 		if self.modeSolo:
 			i = order.index(0)
