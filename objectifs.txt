@@ -1,5 +1,5 @@
 Must have :
-	- mode 1 joueur
+	- opti : ne pas draw quand souris bouge pas
 	- sauvegarde & affichage meilleurs scores
 	- sauvegarde automatique
 	- revamp popup tour

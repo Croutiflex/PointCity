@@ -14,8 +14,9 @@ class pointCityGame:
 		self.screen = screen
 		self.cheatMode = cheatMode
 		self.autoSave = True
-		self.nPlayers = nPlayers # nombre de joueurs
-		self.startingPlayer = random.randint(0, nPlayers - 1) # qui commence?
+		self.modeSolo = nPlayers == 1
+		self.nPlayers = max(2, nPlayers) # nombre de joueurs
+		self.startingPlayer = 0 if self.modeSolo else random.randint(0, nPlayers - 1) # qui commence?
 		self.currentPlayer = self.startingPlayer # à qui le tour?
 		self.gamePhase = GPhase.DISCOVER # quelle phase de jeu?
 		self.translationsMJ = [] # marché vers joueur
@@ -79,6 +80,10 @@ class pointCityGame:
 			self.currentPlayer = int(mainInfo[3])
 			self.gamePhase = int(mainInfo[4])
 
+			# mode solo?
+			if self.nPlayers == 2 and avatars[1] == -1:
+				self.modeSolo = True
+
 			# joueurs
 			Id = self.currentPlayer
 			print("au tour du joueur ", self.currentPlayer+1)
@@ -102,7 +107,7 @@ class pointCityGame:
 			for i in range(self.nPlayers):
 				if len(self.playerInventory[i].tokens) > 0:
 					self.playerInventory[i].updateTokenPos(True)
-			self.tokenMarket = pointCityTokenMarket(screen, marketTokens)
+			self.tokenMarket = pointCityTokenMarket(screen, marketTokens, self.modeSolo)
 
 			# cartes
 			allCards = tier1cards + tier2cards + tier3cards
@@ -131,15 +136,15 @@ class pointCityGame:
 						self.playerInventory[place-1].addCard(allCards[Id])
 			# for p in self.playerInventory:
 			# 	print("Joueur ", p.Id+1, ", prod:", p.production)
-			self.market = pointCityMarket(screen, marketCards)
+			self.market = pointCityMarket(screen, marketCards, self.modeSolo)
 			self.market.updateFlip()
 			self.tokensLeft = len(self.playerInventory[self.currentPlayer].muniBats) - len(self.playerInventory[self.currentPlayer].tokens)
 		else: # nouvelle partie
 			# joueurs
 			Id = self.startingPlayer
 			print("Joueur ", self.startingPlayer+1, " commence")
-			if avatars == None:
-				avatars = random.sample(range(8), k=self.nPlayers)
+			# if avatars == None:
+			# 	avatars = random.sample(range(8), k=self.nPlayers)
 			for pos in range(self.nPlayers):
 				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, avatars[Id]))
 				Id += 1
@@ -164,11 +169,11 @@ class pointCityGame:
 					L.append(cards[n])
 					n += 1
 				marketCards.append(L)
-			self.market = pointCityMarket(screen, marketCards)
+			self.market = pointCityMarket(screen, marketCards, self.modeSolo)
 
 			# inventaire des jetons
 			random.shuffle(allTokens)
-			self.tokenMarket = pointCityTokenMarket(screen, allTokens[:gameMatos[3]])
+			self.tokenMarket = pointCityTokenMarket(screen, allTokens[:gameMatos[3]], self.modeSolo)
 
 		self.turnsLeft = 1 + int(len(self.pioche)/2)
 		self.turn = 0 # à changer
@@ -249,7 +254,6 @@ class pointCityGame:
 				self.playerInventory[self.currentPlayer].selectHandCard(mousePos)
 				selcards = self.market.selectCard(mousePos)
 				if len(selcards) == 2: # sélection marché
-					selcards.sort(key = lambda c : 4*c[0] + c[1])
 					self.drawFromMarket(selcards)
 					
 			case GPhase.TOKEN:
@@ -405,6 +409,7 @@ class pointCityGame:
 		self.playerInventory[self.currentPlayer].resetSelection()
 
 	def drawFromMarket(self, selcards):
+		selcards.sort(key = lambda c : 4*c[0] + c[1])
 		(i,j) = selcards[0]
 		(k,l) = selcards[1]
 		card1 = self.market.cards[i][j]
@@ -513,8 +518,90 @@ class pointCityGame:
 		if self.newTurnPopup.on: # fermeture popup tour suivant
 			self.newTurnPopup.on = False
 			self.drawFull()
+			if self.modeSolo and self.currentPlayer == 1: # tour de l'automa
+				self.playAutomaTurn()
 			return True
 		return False
+
+	def playAutomaTurn(self):
+		self.gamePhase = GPhase.AUTOMA
+
+		self.market.automaCards.sort(key = lambda c : 4*c[0] + c[1])
+		(i,j) = self.market.automaCards[0]
+		(k,l) = self.market.automaCards[1]
+		card1 = self.market.cards[i][j]
+		card2 = self.market.cards[k][l]
+		card1.resize(2)
+		card2.resize(2)
+		self.market.moveAutomaCards()
+
+		municipalDrawn = 0
+		if card1.side == BATIMENT:
+			if card1.type == "municipal":
+				municipalDrawn += 1
+		if card2.side == BATIMENT:
+			if card2.type == "municipal":
+				municipalDrawn += 1
+
+		def f1():
+			self.playerInventory[self.currentPlayer].addCard(card1)
+		def f2():
+			self.playerInventory[self.currentPlayer].addCard(card2)
+
+		# animations marché vers joueur
+		if card1.side == RESSOURCE:
+			self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
+		else:
+			pos = muniPosL
+			if card1.type == "ressource":
+				pos = cityPosL[card1.ressource]
+			elif card1.type == "points":
+				pos = pointsPosL
+			self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
+
+		if card2.side == RESSOURCE:
+			self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
+		else:
+			pos = muniPosL
+			if card2.type == "ressource":
+				pos = cityPosL[card2.ressource]
+			if card2.type == "points":
+				pos = pointsPosL
+			self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
+
+		self.market.cards[i][j] = None
+		self.market.cards[k][l] = None
+
+		while municipalDrawn > 0:
+			municipalDrawn -= 1
+			if len(self.tokenMarket.tokens) > 0:
+				tk = self.tokenMarket.tokens.pop(0)
+				tk.resize(2)
+				def f():
+					self.playerInventory[self.currentPlayer].addToken(tk)
+				pos = self.playerInventory[self.currentPlayer].updateTokenPos()
+				self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[0], pos, f))
+			
+		if self.turnsLeft == 1: # si c'est le dernier tour
+			self.endTurn()
+			return
+
+		# animations pioche vers marché
+		newcard1 = self.pioche[0]
+		newcard2 = self.pioche[1]
+		if card1.side == RESSOURCE:
+			newcard1.flip()
+		if card2.side == RESSOURCE:
+			newcard2.flip()
+		def f3():
+			self.market.cards[i][j] = newcard1
+			self.pioche = self.pioche[1:]
+		def f4():
+			self.market.cards[k][l] = newcard2
+			self.endTurn()
+		
+		self.translationsPM.append(translation(self.screen, newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
+		self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
 
 	def endTurn(self):
 		self.turnsLeft -= 1
@@ -533,8 +620,6 @@ class pointCityGame:
 			self.gamePhase = GPhase.DISCOVER
 		else:
 			self.gamePhase = GPhase.MARKET
-		self.market.draw(self.gamePhase)
-		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
 
 		self.newTurnPopup.setNextPlayer(self.playerInventory[self.currentPlayer].avatar, self.currentPlayer)
 		self.newTurnPopup.on = True
@@ -544,7 +629,12 @@ class pointCityGame:
 		# pg.time.wait(pauseTime1)
 
 	def computeScores(self):
-		return endScreen(self.screen, [(p.avatarNr, p.computeScore(), len(p.resCards)) for p in self.playerInventory])
+		if self.modeSolo:
+			L = [(self.playerInventory[0].avatarNr, self.playerInventory[0].computeScore(), len(self.playerInventory[0].resCards))]
+			L = L + [(-1, self.playerInventory[1].computeAutomaScore(i), len(self.playerInventory[1].resCards)) for i in range(3)]
+			return endScreen(self.screen, L)
+		else:
+			return endScreen(self.screen, [(p.avatarNr, p.computeScore(), len(p.resCards)) for p in self.playerInventory])
 
 	def drawFull(self):
 		self.screen.fill(backgroundColor, PIBackgroundRect)

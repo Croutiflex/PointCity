@@ -27,7 +27,8 @@ POINTS = 2
 class GPhase(IntEnum):
 	DISCOVER = 0
 	MARKET = 1
-	TOKEN = 2 
+	TOKEN = 2
+	AUTOMA = 3
 
 # types de jetons
 POINTS = 0
@@ -44,6 +45,9 @@ matos2 = [40, 24, 18, 10]
 matos3 = [52, 36, 28, 12]
 matos4 = [64, 48, 38, 14]
 matos = [matos1, matos2, matos3, matos4]
+
+## SCORE DE L'AUTOMA
+automaScale = [[1,1,1,3], [1,2,3,5], [1,3,6,7]]
 
 ## DIMENSIONS (PARAM)
 
@@ -126,13 +130,14 @@ translationTime2 = 2
 ## COLORS
 menuBackgroundColor = pg.Color(122,183,191)
 backgroundColor = pg.Color(200,200,200)
-transparent = pg.Color(100,100,100, 128)
+# transparent = pg.Color(100,100,100, 128)
 textColor = pg.Color(120,0,60)
 white = pg.Color(255,255,255)
 darkBlue = pg.Color(20,0,77)
 blue = pg.Color(50,100,255)
 green = pg.Color(50,255,100)
 red = pg.Color(255,100,50)
+orange = pg.Color(255,220,25)
 playerColors = [pg.Color(204,153,255), pg.Color(255,204,153), pg.Color(153,255,153), pg.Color(255,153,204)]
 
 ## IMAGES
@@ -180,10 +185,11 @@ playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+"
 playerTitleImgSmall = [playerTitleImg[i].subsurface(pg.Rect(0, fontsize1/2, 2*tokenSize2, fontsize1)) for i in range(4)]
 
 # avatars
-avatarImg = [pg.image.load("res/avatars/"+str(i)+".png") for i in range(1,13)]
-
+avatarImg = [pg.image.load("res/avatars/"+str(i)+".png") for i in range(1,14)]
+automAvatar = pg.image.load("res/avatars/13.png")
 
 # UTILS
+starImg = pg.transform.smoothscale(pg.image.load("res/star.png"), (100, 100))
 def draw_rect_alpha(surface, color, rect):
     shape_surf = pg.Surface(pg.Rect(rect).size, pg.SRCALPHA)
     pg.draw.rect(shape_surf, color, shape_surf.get_rect())

@@ -6,11 +6,13 @@ from pointcity import *
 boutonLeftImg = pg.image.load("res/rules/left.png")
 boutonRightImg = pg.image.load("res/rules/right.png")
 boutonXImg = pg.image.load("res/X.png")
-reglesImg = [pg.image.load("res/rules/"+str(i)+".png") for i in range(1,4)]
+reglesImg = [pg.image.load("res/rules/"+str(i)+".png") for i in range(1,10)]
 
 #dimensions
-reglesSize = (screenSize[0]*screenSize[1]/reglesImg[0].get_rect().h, screenSize[1])
-reglesPos = ((screenSize[0] - reglesSize[0])/2, 0)
+reglesRect = reglesImg[0].get_rect()
+reglesRect.scale_by_ip(screenSize[1]/reglesRect.h)
+reglesRect.centerx = midx
+reglesRect.top = 0
 space = 30
 h1 = screenSize[1]/10
 h2 = screenSize[1]/20
@@ -32,7 +34,7 @@ boutonLeftImg2 = pg.transform.smoothscale(pg.image.load("res/rules/left2.png"), 
 boutonRightImg2 = pg.transform.smoothscale(pg.image.load("res/rules/right2.png"), boutonSize1)
 boutonXImg = pg.transform.smoothscale(boutonXImg, boutonSize2)
 boutonXImg2 = pg.transform.smoothscale(pg.image.load("res/X2.png"), boutonSize2)
-reglesImg = [pg.transform.smoothscale(reglesImg[i], reglesSize) for i in range(3)]
+reglesImg = [pg.transform.smoothscale(r, reglesRect.size) for r in reglesImg]
 
 
 # Nrs boutons
@@ -61,7 +63,7 @@ class rulesMenu:
 	def draw(self):
 		mousePos = pg.mouse.get_pos()
 		self.screen.fill(menuBackgroundColor)
-		self.screen.blit(reglesImg[self.page], reglesPos)
+		self.screen.blit(reglesImg[self.page], reglesRect)
 		imgL = boutonLeftImg
 		imgR = boutonRightImg
 		imgX = boutonXImg

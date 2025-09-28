@@ -26,6 +26,7 @@ def main():
 
 	# test
 	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(4)])
+	# EndScreen = endScreen(screen, [(11, 18, 7)] + [(-1, i*9, 4) for i in range(3)])
 	# state = "END"
 
 	# frame loop

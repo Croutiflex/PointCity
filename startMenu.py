@@ -86,7 +86,10 @@ class startMenu:
 			self.selectedButton = boutonNr.RIEN
 		elif self.mode == 2:
 			if self.avSelect.leftClick():
-				return pointCityGame(self.screen, False, nPlayers=self.nPlayers, avatars=self.avSelect.selectedAvatar, cheatMode=self.cheatMode)
+				av = self.avSelect.selectedAvatar
+				if self.nPlayers == 1:
+					av.append(-1)
+				return pointCityGame(self.screen, False, nPlayers=self.nPlayers, avatars=av, cheatMode=self.cheatMode)
 		else:
 			match self.selectedButton:
 				case boutonNr.X:

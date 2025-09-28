@@ -3,8 +3,9 @@ import pygame as pg
 import math
 
 class pointCityTokenMarket:
-	def __init__(self, screen, tokens):
+	def __init__(self, screen, tokens, modeSolo=False):
 		self.screen = screen
+		self.modeSolo = modeSolo
 		self.tokens = tokens
 		self.tokenPos = []
 		self.tokenCenter = []
@@ -33,6 +34,8 @@ class pointCityTokenMarket:
 		return ret
 
 	def draw(self, isTokenPhase):
+		if self.modeSolo and len(self.tokens) > 0:
+			pg.draw.circle(self.screen, orange, self.tokenCenter[0], TKR)
 		if isTokenPhase:
 			i = self.findToken(pg.mouse.get_pos())
 			if i != -1:
@@ -40,7 +43,7 @@ class pointCityTokenMarket:
 		for i in range(len(self.tokens)):
 			self.tokens[i].draw(self.tokenPos[i])
 
-	def lazyDraw(self, isTokenPhase):
+	def lazyDraw(self, isTokenPhase): # deprecated
 		if not isTokenPhase:
 			return
 		x = self.findToken(pg.mouse.get_pos())

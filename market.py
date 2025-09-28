@@ -2,8 +2,10 @@ import pygame as pg
 from params import *
 
 class pointCityMarket:
-	def __init__(self, screen, cards):
+	def __init__(self, screen, cards, modeSolo=False):
 		self.screen = screen
+		self.modeSolo = modeSolo
+		self.automaCards = [(1,0), (2,0)] if modeSolo else []
 		self.cards = cards
 		self.cardPos = []
 		self.selectedCards = []
@@ -14,7 +16,6 @@ class pointCityMarket:
 		for i in range(4):
 			L = []
 			R = []
-			C = []
 			x = marketPos[0]
 			for j in range(4):
 				L.append((x,y))
@@ -109,6 +110,17 @@ class pointCityMarket:
 					return True
 		return False
 
+	def moveAutomaCards(self):
+		for x in range(2):
+			(i,j) = self.automaCards.pop(0)
+			i += 1
+			if i == 4:
+				i = 0
+			j += 1
+			if j == 4:
+				j = 0
+			self.automaCards.append((i,j))
+
 	def draw(self, gamePhase):
 		(x,y) = self.findCard(pg.mouse.get_pos())
 		# self.screen.fill(backgroundColor, marketBackgroundRect)
@@ -121,6 +133,8 @@ class pointCityMarket:
 				if x != -1 and self.cards[x][y].canFlip:
 					self.screen.fill(white, self.highlightRects[x][y])
 			case GPhase.MARKET:
+				for (i,j) in self.automaCards:
+					self.screen.fill(orange, self.highlightRects[i][j])
 				if len(self.selectedCards) == 1:
 					(i,j) = self.selectedCards[0]
 					self.screen.fill(blue, self.highlightRects[i][j])

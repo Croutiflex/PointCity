@@ -8,6 +8,7 @@ class pointCityPlayerInventory:
 	def __init__(self, screen, Id, pos, avatar=-1, newGame=True):
 		self.screen = screen
 		self.pos = pos
+		self.isAutoma = avatar == -1
 		self.avatarNr = avatar
 		self.avatar = pg.transform.smoothscale(avatarImg[avatar], avatarSize1)
 		self.resCards = []
@@ -69,6 +70,21 @@ class pointCityPlayerInventory:
 							total += int(tk.info)
 				case 5: # multi
 					total += min(self.production)*int(tk.info)
+		return total
+
+	def computeAutomaScore(self, diff):
+		total = self.score
+		scale = automaScale[diff]
+		if diff == 0:
+			total += sum(self.production)
+		else:
+			for prod in self.production:
+				if prod > 0:
+					p = min(prod, 3)
+					total += scale[p-1]
+		total += scale[3]*len(self.tokens)
+		if diff == 2:
+			total += len(self.resCards)
 		return total
 
 	def endTurn(self, n):
@@ -176,6 +192,8 @@ class pointCityPlayerInventory:
 			self.addBatCard(card)
 
 	def addResCard(self, card):
+		if self.isAutoma and card.ressource != INGENIEUR:
+			return
 		self.resCards.append(card)
 		self.updateHandPos()
 
