@@ -3,6 +3,7 @@ import pygame as pg
 pg.init()
 import sys
 import random
+import time
 from pointcity import *
 from startMenu import *
 from mainMenu import *
@@ -23,6 +24,7 @@ def main():
 	PCGame = None
 	EndScreen = None
 	state = "STARTMENU"
+	lastFrame = time.time()
 
 	# test
 	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(4)])
@@ -31,6 +33,10 @@ def main():
 
 	# frame loop
 	while 1:
+		T = time.time()
+		if T - lastFrame < minFrameTime:
+			continue
+		lastFrame = T
 		mousePos = pg.mouse.get_pos()
 		match state:
 			case "STARTMENU":

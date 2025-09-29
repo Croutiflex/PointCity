@@ -1,18 +1,19 @@
 Must have :
-	- opti : ne pas draw quand souris bouge pas
 	- sauvegarde & affichage meilleurs scores
 	- sauvegarde automatique
-	- revamp popup tour
+	- revamp popup nouveau tour
 	- chantier polices
 
 Nice to have :
+	- optimisation perf:
+		- groupements d'images?
+		- passer tout en coordonnées relatives?
 	- écran de chargement au lancement du jeu
 	- menu options:
 		- vitesse des anim
 		- activer/désactiver autoSave
+		- curseur?
 
 Could have :
 	- afficher le nb de tours restants
 	- zoom sur les cartes/jetons
-	- groupement d'images pendant animation?
-	- passer tout en coordonnées relatives
