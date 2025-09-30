@@ -54,6 +54,7 @@ automaScale = [[1,1,1,3], [1,2,3,5], [1,3,6,7]]
 # constantes
 screenSize = (1920, 1080)
 cursorSize = (30, 30)
+cursorHotspot = (5, 5)
 midx = screenSize[0]/2
 midy = screenSize[1]/2
 space1 = 5
@@ -62,8 +63,7 @@ space3 = 25
 cardRatio = 0.66 # H/L
 fontsize1 = 30
 fontsize2 = 50
-maxFramerate = 45
-minFrameTime = 1/maxFramerate
+maxFramerate = 60
 
 # adaptables
 cardH = (screenSize[1] - 2*space3 - 3*space2)/4

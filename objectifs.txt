@@ -1,4 +1,5 @@
 Must have :
+	- bug quand Automa prend 2 jetons 
 	- sauvegarde & affichage meilleurs scores
 	- sauvegarde automatique
 	- revamp popup nouveau tour
@@ -13,6 +14,8 @@ Nice to have :
 		- vitesse des anim
 		- activer/désactiver autoSave
 		- curseur?
+		- max framerate?
+		- afficher la framerate
 
 Could have :
 	- afficher le nb de tours restants

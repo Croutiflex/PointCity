@@ -33,7 +33,7 @@ class pointCityTokenMarket:
 		self.draw(False)
 		return ret
 
-	def draw(self, isTokenPhase):
+	def draw(self, isTokenPhase=False):
 		if self.modeSolo and len(self.tokens) > 0:
 			pg.draw.circle(self.screen, orange, self.tokenCenter[0], TKR)
 		if isTokenPhase:

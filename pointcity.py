@@ -181,15 +181,7 @@ class pointCityGame:
 
 		self.turnsLeft = 1 + int(len(self.pioche)/2)
 		self.turn = 0 # à changer
-		self.firstDraw()
-
-	def firstDraw(self):
-		# premier draw
-		self.screen.fill(backgroundColor)
-		self.market.draw(self.gamePhase)
-		for p in self.playerInventory:
-			p.draw()
-		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+		self.drawBase()
 
 	# sauvegarde la partie dans un fichier texte
 	# slot à préciser, si le slot n'est pas vide il sera écrasé
@@ -517,11 +509,11 @@ class pointCityGame:
 	def closePopups(self):
 		if self.lastTurnPopup.on: # fermeture popup dernier tour
 			self.lastTurnPopup.on = False
-			self.drawFull()
+			self.drawBase()
 			return True
 		if self.newTurnPopup.on: # fermeture popup tour suivant
 			self.newTurnPopup.on = False
-			self.drawFull()
+			self.drawBase()
 			if self.modeSolo and self.currentPlayer == 1: # tour de l'automa
 				self.playAutomaTurn()
 			return True
@@ -640,16 +632,24 @@ class pointCityGame:
 		else:
 			return endScreen(self.screen, [(p.avatarNr, p.computeScore(), len(p.resCards)) for p in self.playerInventory])
 
-	def drawFull(self):
-		self.screen.fill(backgroundColor, PIBackgroundRect)
-		self.market.draw(self.gamePhase)
-		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
-		for p in self.playerInventory:
-			p.draw()
-
 	# est-ce qu'il y a des anim. en cours?
 	def isAnimating(self):
 		return len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) > 0
+
+	def drawBase(self):
+		self.screen.fill(backgroundColor)
+		# marché
+		self.market.draw(self.gamePhase)
+		# pioche
+		if len(self.pioche) > 0:
+			self.pioche[0].draw(piochePos)
+		pText = self.piocheText.render(str(len(self.pioche)), True, textColor, backgroundColor)
+		self.screen.blit(pText, pText.get_rect().move(piocheTextPos))
+		# jetons
+		self.tokenMarket.draw()
+		# joueurs
+		for p in self.playerInventory:
+			p.draw()
 
 	def draw(self):
 		if self.turnsLeft == 0 and not self.isAnimating(): # fin de partie à la fin des animations
@@ -664,10 +664,8 @@ class pointCityGame:
 		for p in self.playerInventory:
 			p.draw(self.gamePhase == GPhase.MARKET)
 
-		mousePos = pg.mouse.get_pos()
-
 		# pioche
-		if self.gamePhase == GPhase.MARKET and self.piocheRect.collidepoint(mousePos) and len(self.market.selectedCards) == 0:
+		if self.gamePhase == GPhase.MARKET and self.piocheRect.collidepoint(pg.mouse.get_pos()) and len(self.market.selectedCards) == 0:
 			self.screen.fill(white, self.piocheRect)
 		else:
 			self.screen.fill(backgroundColor, self.piocheRect)
