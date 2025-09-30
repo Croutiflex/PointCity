@@ -3,6 +3,7 @@ Must have :
 	- sauvegarde & affichage meilleurs scores
 	- sauvegarde automatique
 	- revamp popup nouveau tour
+	- DU SON BORDEL
 	- chantier polices
 
 Nice to have :

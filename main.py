@@ -1,7 +1,5 @@
-import numpy as np
 import pygame as pg
 pg.init()
-import random
 from pointcity import *
 from startMenu import *
 from mainMenu import *
@@ -118,9 +116,7 @@ def main():
 
 		if displayFPS:
 			FPSText = font.render(str(int(clock.get_fps())), True, white, "black")
-			rect = FPSText.get_rect()
-			rect.centerx = midx
-			rect.bottom = screenSize[1] - space1
+			rect = FPSText.get_rect(centerx = midx, bottom = screenSize[1] - space1)
 			screen.blit(FPSText, rect)
 		pg.display.flip()
 		clock.tick(maxFramerate)
