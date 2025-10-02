@@ -39,4 +39,4 @@ class Point(pg.sprite.Sprite):
 	def __init__(self, pos):
 		(x, y) = pos
 		pg.sprite.Sprite.__init__(self)
-		self.rect = pg.Rect(x, y, x + 1, y + 1)
+		self.rect = pg.Rect(x, y, 1, 1)

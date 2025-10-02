@@ -44,11 +44,8 @@ class PlayerSelectMenu:
 
 	def update(self):
 		self.closeButton.update()
-		self.currentPick = None
-		for av in self.avatars.sprites():
-			if av.rect.collidepoint(pg.mouse.get_pos()):
-				self.currentPick = av
-				break;
+		collide = pg.sprite.spritecollide(Point(pg.mouse.get_pos()), self.avatars, 0)
+		self.currentPick = collide[0] if len(collide) > 0 else None
 		if self.currentPick:
 			self.HL.move(self.currentPick.rect.center)
 			self.drawables.add(self.HL)

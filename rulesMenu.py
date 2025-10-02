@@ -12,8 +12,8 @@ class RulesMenu:
 		self.rightButton.rect.centery = midy
 		self.rightButton.rect.right = screenSize[0] - 30
 		self.rulesBook = RulesBook()
-		self.buttons = [self.rightButton, self.closeButton]
-		self.drawables = pg.sprite.RenderPlain(self.buttons + [self.rulesBook])
+		self.buttons = pg.sprite.Group([self.rightButton, self.closeButton])
+		self.drawables = pg.sprite.RenderPlain([self.rightButton, self.closeButton] + [self.rulesBook])
 		self.selectedButton = None
 
 	# renvoie True si croix cliquée
@@ -24,18 +24,18 @@ class RulesMenu:
 			return True
 		elif b == self.leftButton:
 			newPage = self.rulesBook.turn(-1)
-			if newPage == 0 and lastPage == 1:
+			if newPage == 0:
 				self.drawables.remove(b)
 				self.buttons.remove(b)
-			elif newPage == len(self.rulesBook.img) - 2 and lastPage == len(self.rulesBook.img) - 1:
+			elif newPage == len(self.rulesBook.img) - 2:
 				self.drawables.add(self.rightButton)
-				self.buttons.append(self.rightButton)
+				self.buttons.add(self.rightButton)
 		elif b == self.rightButton:
 			newPage = self.rulesBook.turn(1)
-			if newPage == 1 and lastPage == 0:
+			if newPage == 1:
 				self.drawables.add(self.leftButton)
-				self.buttons.append(self.leftButton)
-			elif newPage == len(self.rulesBook.img) - 1 and lastPage == len(self.rulesBook.img) - 2:
+				self.buttons.add(self.leftButton)
+			elif newPage == len(self.rulesBook.img) - 1:
 				self.drawables.remove(b)
 				self.buttons.remove(b)
 		return False
@@ -43,9 +43,8 @@ class RulesMenu:
 	def update(self):
 		self.drawables.update()
 		self.selectedButton = None
-		for b in self.buttons:
-			if b.isSelected:
-				self.selectedButton = b
+		collide = pg.sprite.spritecollide(Point(pg.mouse.get_pos()), self.buttons, 0)
+		self.selectedButton = collide[0] if len(collide) > 0 else None
 
 	def draw(self, screen):
 		screen.fill(menuBackgroundColor)
