@@ -1,85 +1,69 @@
 import pygame as pg
 from params import *
-from pointcity import *
+from utils import *
 
-# images
-boutonLeftImg = pg.image.load("res/rules/left.png")
-boutonRightImg = pg.image.load("res/rules/right.png")
-boutonXImg = pg.image.load("res/X.png")
-reglesImg = [pg.image.load("res/rules/"+str(i)+".png") for i in range(1,10)]
+class RulesMenu:
+	def __init__(self):
+		self.closeButton = CloseButton()
+		self.leftButton = Button("res/rules/left.png", "res/rules/left2.png", (screenSize[0]/20, screenSize[1]/10))
+		self.leftButton.rect.centery = midy
+		self.leftButton.rect.left = 30
+		self.rightButton = Button("res/rules/right.png", "res/rules/right2.png", (screenSize[0]/20, screenSize[1]/10))
+		self.rightButton.rect.centery = midy
+		self.rightButton.rect.right = screenSize[0] - 30
+		self.rulesBook = RulesBook()
+		self.buttons = [self.rightButton, self.closeButton]
+		self.drawables = pg.sprite.RenderPlain(self.buttons + [self.rulesBook])
+		self.selectedButton = None
 
-#dimensions
-reglesRect = reglesImg[0].get_rect()
-reglesRect.scale_by_ip(screenSize[1]/reglesRect.h)
-reglesRect.centerx = midx
-reglesRect.top = 0
-space = 30
-h1 = screenSize[1]/10
-h2 = screenSize[1]/20
-(a,b) = boutonLeftImg.get_rect().size
-boutonSize1 = (h1*a/b, h1)
-boutonSize2 = (h2, h2)
-
-# boutons
-boutonLRect = pg.Rect((space, 0), boutonSize1)
-boutonLRect.centery = screenSize[1]/2
-boutonRRect = boutonLRect.copy()
-boutonRRect.right = screenSize[0] - space
-boutonXRect = pg.Rect((screenSize[0] - h2*2, h2), boutonSize2)
-
-# redimensionnement
-boutonLeftImg = pg.transform.smoothscale(boutonLeftImg, boutonSize1)
-boutonRightImg = pg.transform.smoothscale(boutonRightImg, boutonSize1)
-boutonLeftImg2 = pg.transform.smoothscale(pg.image.load("res/rules/left2.png"), boutonSize1)
-boutonRightImg2 = pg.transform.smoothscale(pg.image.load("res/rules/right2.png"), boutonSize1)
-boutonXImg = pg.transform.smoothscale(boutonXImg, boutonSize2)
-boutonXImg2 = pg.transform.smoothscale(pg.image.load("res/X2.png"), boutonSize2)
-reglesImg = [pg.transform.smoothscale(r, reglesRect.size) for r in reglesImg]
-
-
-# Nrs boutons
-class boutonNr(IntEnum):
-	RIEN = -1
-	RIGHT = 0
-	LEFT = 1
-	X = 2
-
-class rulesMenu:
-	def __init__(self, screen):
-		self.screen = screen
-		self.page = 0
-		self.selectedButton = boutonNr.RIEN
-
+	# renvoie True si croix cliquée
 	def leftClick(self):
-		match self.selectedButton:
-			case boutonNr.RIGHT:
-				self.page += 1
-			case boutonNr.LEFT:
-				self.page -= 1
-			case boutonNr.X:
-				return True
+		b = self.selectedButton
+		lastPage = self.rulesBook.page
+		if b == self.closeButton:
+			return True
+		elif b == self.leftButton:
+			newPage = self.rulesBook.turn(-1)
+			if newPage == 0 and lastPage == 1:
+				self.drawables.remove(b)
+				self.buttons.remove(b)
+			elif newPage == len(self.rulesBook.img) - 2 and lastPage == len(self.rulesBook.img) - 1:
+				self.drawables.add(self.rightButton)
+				self.buttons.append(self.rightButton)
+		elif b == self.rightButton:
+			newPage = self.rulesBook.turn(1)
+			if newPage == 1 and lastPage == 0:
+				self.drawables.add(self.leftButton)
+				self.buttons.append(self.leftButton)
+			elif newPage == len(self.rulesBook.img) - 1 and lastPage == len(self.rulesBook.img) - 2:
+				self.drawables.remove(b)
+				self.buttons.remove(b)
 		return False
 
-	def draw(self):
-		mousePos = pg.mouse.get_pos()
-		self.screen.fill(menuBackgroundColor)
-		self.screen.blit(reglesImg[self.page], reglesRect)
-		imgL = boutonLeftImg
-		imgR = boutonRightImg
-		imgX = boutonXImg
-		if self.page > 0 and boutonLRect.collidepoint(mousePos):
-			imgL = boutonLeftImg2
-			self.selectedButton = boutonNr.LEFT
-		elif self.page < len(reglesImg) - 1 and boutonRRect.collidepoint(mousePos):
-			imgR = boutonRightImg2
-			self.selectedButton = boutonNr.RIGHT
-		elif boutonXRect.collidepoint(mousePos):
-			imgX = boutonXImg2
-			self.selectedButton = boutonNr.X
-		else:
-			self.selectedButton = boutonNr.RIEN
-		if self.page > 0:
-			self.screen.blit(imgL, boutonLRect)
-		if self.page < len(reglesImg) - 1:
-			self.screen.blit(imgR, boutonRRect)
-		self.screen.blit(imgX, boutonXRect)
+	def update(self):
+		self.drawables.update()
+		self.selectedButton = None
+		for b in self.buttons:
+			if b.isSelected:
+				self.selectedButton = b
+
+	def draw(self, screen):
+		screen.fill(menuBackgroundColor)
+		self.drawables.draw(screen)
+
+class RulesBook(pg.sprite.Sprite):
+	def __init__(self):
+		pg.sprite.Sprite.__init__(self)
+		reglesImg = [pg.image.load("res/rules/"+str(i)+".png") for i in range(1,10)]
+		self.rect = reglesImg[0].get_rect()
+		self.rect.scale_by_ip(screenSize[1]/self.rect.h)
+		self.rect.centerx = midx
+		self.rect.top = 0
+		self.img = [pg.transform.smoothscale(r, self.rect.size) for r in reglesImg]
+		self.page = 0
+		self.image = self.img[0]
+	# tourner les pages
+	def turn(self, direction=1):
+		self.page = min(len(self.img) - 1 , self.page + direction)
+		self.image = self.img[self.page]
+		return self.page

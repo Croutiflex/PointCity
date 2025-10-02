@@ -63,6 +63,8 @@ space3 = 25
 cardRatio = 0.66 # H/L
 fontsize1 = 30
 fontsize2 = 50
+font1 = pg.font.Font('freesansbold.ttf', fontsize1)
+font2 = pg.font.Font('freesansbold.ttf', fontsize2)
 maxFramerate = 60
 
 # adaptables

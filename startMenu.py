@@ -16,6 +16,8 @@ bannerRect.centerx = screenSize[0]/2
 bannerRect.top = 0
 HLratio = 1.05
 banner = pg.transform.smoothscale(banner, bannerRect.size)
+h2 = screenSize[1]/20
+boutonSize2 = (h2, h2)
 
 w1 = screenSize[0]/5
 boutonSize1 = (w1, w1*b/a)
@@ -28,6 +30,7 @@ bouton2Rect = bouton1Rect.move(2*w1, 0)
 bouton2HL = bouton2Rect.scale_by(HLratio)
 boutonGroup1 = [bouton1Rect, bouton2Rect]
 boutonHLGroup1 = [bouton1HL, bouton2HL]
+boutonXRect = pg.Rect((screenSize[0] - h2*2, h2), boutonSize2)
 
 bouton3Rect = bouton1Rect.copy()
 bouton3Rect.centery = bannerRect.centery + (screenSize[1] - bannerRect.centery)/3
@@ -43,6 +46,9 @@ boutonGroup2 = [bouton3Rect, bouton4Rect, bouton5Rect, bouton6Rect]
 boutonHLGroup2 = [bouton3HL, bouton4HL, bouton5HL, bouton6HL]
 
 # images
+boutonXImg = pg.image.load("res/X.png")
+boutonXImg = pg.transform.smoothscale(boutonXImg, boutonSize2)
+boutonXImg2 = pg.transform.smoothscale(pg.image.load("res/X2.png"), boutonSize2)
 boutonPlayImg = pg.transform.smoothscale(pg.image.load("res/startMenu/play.png"), boutonSize1)
 boutonReglesImg = pg.transform.smoothscale(pg.image.load("res/startMenu/boutonregles.png"), boutonSize1)
 boutonNewGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/newgame.png"), boutonSize1)
@@ -74,22 +80,27 @@ class startMenu:
 		self.mode = 0
 		self.page = 0
 		self.selectedButton = boutonNr.RIEN
-		self.rules = rulesMenu(screen)
+		self.rules = RulesMenu()
 		self.avSelect = None
 
 	def leftClick(self):
-		PCgame = None
+		PCgame = "nope"
 		if self.mode == 1:
 			if self.rules.leftClick():
 				self.mode = 0
-				self.rules.page = 0
+				self.rules = RulesMenu()
 			self.selectedButton = boutonNr.RIEN
 		elif self.mode == 2:
-			if self.avSelect.leftClick():
-				av = self.avSelect.selectedAvatar
-				if self.nPlayers == 1:
-					av.append(-1)
-				return pointCityGame(self.screen, False, nPlayers=self.nPlayers, avatars=av, cheatMode=self.cheatMode)
+			match self.avSelect.leftClick():
+				case "close":
+					return "close"
+				case "nope":
+					return PCgame
+				case "ready":
+					av = self.avSelect.picked
+					if self.nPlayers == 1:
+						av.append(-1)
+					return pointCityGame(self.screen, False, nPlayers=self.nPlayers, avatars=av, cheatMode=self.cheatMode)
 		else:
 			match self.selectedButton:
 				case boutonNr.X:
@@ -101,7 +112,7 @@ class startMenu:
 				case boutonNr.NEWGAME:
 					self.page = 2
 				case boutonNr.PICKNP:
-					self.avSelect = playerSelectMenu(self.screen, self.nPlayers)
+					self.avSelect = PlayerSelectMenu(self.nPlayers)
 					self.mode = 2
 				case boutonNr.LOADGAME:
 					self.page = 3
@@ -124,6 +135,17 @@ class startMenu:
 	def cheatOrNotCheat(self):
 		self.cheatMode = not self.cheatMode
 		print("cheatMode : "+str(self.cheatMode))
+
+	def update(self):
+		match self.mode: 
+			case 0: # menu principal
+				match self.page:
+					case 0: # menu de départ
+						pass
+			case 1: # menu règles & commandes
+				self.rules.update()
+			case 2: # menu sélection avatars
+				self.avSelect.update()
 
 	def draw(self):
 		mousePos = pg.mouse.get_pos()
@@ -173,6 +195,6 @@ class startMenu:
 								self.screen.fill(white, boutonHLGroup2[i])
 							self.screen.blit(boutonSaveImg[i], boutonGroup2[i])
 			case 1: # menu règles & commandes
-				self.rules.draw()
+				self.rules.draw(self.screen)
 			case 2: # menu sélection avatars
-				self.avSelect.draw()
+				self.avSelect.draw(self.screen)

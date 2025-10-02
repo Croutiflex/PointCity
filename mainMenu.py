@@ -56,7 +56,7 @@ class mainMenu:
 		self.mode = 0
 		self.page = 0
 		self.selectedButton = boutonNr.RIEN
-		self.rules = rulesMenu(screen)
+		self.rules = RulesMenu()
 
 	def leftClick(self): # return True si une partie a été sauvegardée
 		if self.mode == 1:

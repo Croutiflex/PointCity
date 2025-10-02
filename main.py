@@ -56,10 +56,16 @@ def main():
 
 		match state:
 			case "STARTMENU":
+				StartMenu.update()
 				StartMenu.draw()
 				if "leftClick" in events:
-					PCGame = StartMenu.leftClick()
-					if PCGame != None:
+					X = StartMenu.leftClick()
+					if X == "close":
+						running = False
+					elif X == "nope":
+						pass
+					else:
+						PCGame = X
 						state = "GAME"
 						del StartMenu
 				if "escape" in events:

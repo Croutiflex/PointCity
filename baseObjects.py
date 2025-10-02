@@ -1,11 +1,11 @@
 import pygame as pg
 from params import *
 
-class pointCityCard:
-	def __init__(self, screen, tier, ressource, type, cost, value, Id):
+class pointCityCard(pg.sprite.Sprite):
+	def __init__(self, tier, ressource, type, cost, value, Id, pos=(0,0)):
+		super().__init__(self)
 		# constant
 		self.Id = Id
-		self.screen = screen
 		self.tier = tier
 		self.ressource = ressource
 		self.type = type # type de batiment
@@ -19,6 +19,8 @@ class pointCityCard:
 		# variable
 		self.side = RESSOURCE
 		self.canFlip = True
+		self.image = self.getImage()
+		self.rect = self.image.get_rect(x = pos[0], y = pos[1])
 
 	def __str__(self):
 		return str(self.ressource)
@@ -56,6 +58,3 @@ class pointCityToken:
 
 	def getImage(self):
 		return self.image[self.size]
-
-	def draw(self, pos):
-		self.screen.blit(self.getImage(), pos)
