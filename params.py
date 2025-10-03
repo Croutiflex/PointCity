@@ -132,7 +132,7 @@ translationTime = 0.5
 translationTime2 = 2
 
 ## COLORS
-menuBackgroundColor = pg.Color(122,183,191)
+menuBackgroundColor = pg.Color(122, 183, 191, 255)
 backgroundColor = pg.Color(200,200,200)
 # transparent = pg.Color(100,100,100, 128)
 textColor = pg.Color(120,0,60)

@@ -18,7 +18,7 @@ def main():
 
 	running = True
 	displayFPS = True
-	StartMenu = startMenu(screen)
+	startMenu = StartMenu()
 	MainMenu = mainMenu(screen)
 	PCGame = None
 	EndScreen = None
@@ -56,22 +56,28 @@ def main():
 
 		match state:
 			case "STARTMENU":
-				StartMenu.update()
-				StartMenu.draw()
+				startMenu.update()
+				startMenu.draw(screen)
 				if "leftClick" in events:
-					X = StartMenu.leftClick()
-					if X == "close":
-						running = False
-					elif X == "nope":
-						pass
-					else:
-						PCGame = X
-						state = "GAME"
-						del StartMenu
+					match startMenu.leftClick():
+						case "close":
+							running = False
+						case "newgame":
+							av = startMenu.avSelect.picked
+							if startMenu.nPlayers == 1:
+								av.append(-1)
+							PCGame = pointCityGame(screen, False, nPlayers=startMenu.nPlayers, avatars=av, cheatMode=startMenu.cheatMode)
+							state = "GAME"
+							del startMenu
+						case "loadgame":
+							print("chargement partie ", startMenu.slot)
+							PCgame = pointCityGame(screen, True, saveSlot=startMenu.slot)
+							state = "GAME"
+							del startMenu
 				if "escape" in events:
-					StartMenu.retour()
+					startMenu.retour()
 				if "return" in events:
-					StartMenu.cheatOrNotCheat()
+					startMenu.cheatOrNotCheat()
 
 			case "MAINMENU":
 				PCGame.drawBase()

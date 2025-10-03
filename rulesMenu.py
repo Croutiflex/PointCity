@@ -16,6 +16,12 @@ class RulesMenu:
 		self.drawables = pg.sprite.RenderPlain([self.rightButton, self.closeButton] + [self.rulesBook])
 		self.selectedButton = None
 
+	def reset(self):
+		self.rulesBook.reset()
+		self.drawables.remove(self.leftButton)
+		self.buttons.remove(self.leftButton)
+		self.selectedButton = None
+		
 	# renvoie True si croix cliquée
 	def leftClick(self):
 		b = self.selectedButton
@@ -59,6 +65,9 @@ class RulesBook(pg.sprite.Sprite):
 		self.rect.centerx = midx
 		self.rect.top = 0
 		self.img = [pg.transform.smoothscale(r, self.rect.size) for r in reglesImg]
+		self.page = 0
+		self.image = self.img[0]
+	def reset(self):
 		self.page = 0
 		self.image = self.img[0]
 	# tourner les pages

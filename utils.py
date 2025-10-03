@@ -13,9 +13,11 @@ class HighLightRect(pg.sprite.Sprite):
 	def move(self,pos):
 		self.rect.center = pos
 
+# bouton avec 2 images (survolé ou pas)
 class Button(pg.sprite.Sprite):
 	def __init__(self, path1, path2, size, pos=(0,0)):
 		pg.sprite.Sprite.__init__(self)
+		self.layer = 2
 		self.imgOn = pg.transform.smoothscale(pg.image.load(path2), size)
 		self.imgOff = pg.transform.smoothscale(pg.image.load(path1), size)
 		self.image = self.imgOff

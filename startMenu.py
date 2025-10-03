@@ -1,9 +1,8 @@
 import pygame as pg
-import sys
 from params import *
-from pointcity import *
 from rulesMenu import *
 from playerSelectMenu import *
+from utils import *
 
 #dimensions
 bannerY = screenSize[1]/2
@@ -14,187 +13,174 @@ bannerRect = banner.get_rect()
 bannerRect.scale_by_ip(bannerY/bannerRect.h)
 bannerRect.centerx = screenSize[0]/2
 bannerRect.top = 0
-HLratio = 1.05
 banner = pg.transform.smoothscale(banner, bannerRect.size)
-h2 = screenSize[1]/20
-boutonSize2 = (h2, h2)
 
 w1 = screenSize[0]/5
 boutonSize1 = (w1, w1*b/a)
-
-# boutons
-bouton1Rect = pg.Rect((w1, 0), boutonSize1)
-bouton1Rect.centery = (screenSize[1] + bannerRect.centery)/2
-bouton1HL = bouton1Rect.scale_by(HLratio)
-bouton2Rect = bouton1Rect.move(2*w1, 0)
-bouton2HL = bouton2Rect.scale_by(HLratio)
-boutonGroup1 = [bouton1Rect, bouton2Rect]
-boutonHLGroup1 = [bouton1HL, bouton2HL]
-boutonXRect = pg.Rect((screenSize[0] - h2*2, h2), boutonSize2)
-
-bouton3Rect = bouton1Rect.copy()
-bouton3Rect.centery = bannerRect.centery + (screenSize[1] - bannerRect.centery)/3
-bouton3HL = bouton3Rect.scale_by(HLratio)
-bouton4Rect = bouton1Rect.copy()
-bouton4Rect.centery = bannerRect.centery + 2*(screenSize[1] - bannerRect.centery)/3
-bouton4HL = bouton4Rect.scale_by(HLratio)
-bouton5Rect = bouton3Rect.move(2*w1, 0)
-bouton5HL = bouton5Rect.scale_by(HLratio)
-bouton6Rect = bouton4Rect.move(2*w1, 0)
-bouton6HL = bouton6Rect.scale_by(HLratio)
-boutonGroup2 = [bouton3Rect, bouton4Rect, bouton5Rect, bouton6Rect]
-boutonHLGroup2 = [bouton3HL, bouton4HL, bouton5HL, bouton6HL]
-
-# images
-boutonXImg = pg.image.load("res/X.png")
-boutonXImg = pg.transform.smoothscale(boutonXImg, boutonSize2)
-boutonXImg2 = pg.transform.smoothscale(pg.image.load("res/X2.png"), boutonSize2)
-boutonPlayImg = pg.transform.smoothscale(pg.image.load("res/startMenu/play.png"), boutonSize1)
-boutonReglesImg = pg.transform.smoothscale(pg.image.load("res/startMenu/boutonregles.png"), boutonSize1)
-boutonNewGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/newgame.png"), boutonSize1)
-boutonLoadGameImg = pg.transform.smoothscale(pg.image.load("res/startMenu/loadgame.png"), boutonSize1)
-boutonJImg = [pg.transform.smoothscale(pg.image.load("res/startMenu/"+str(i)+"joueurs.png"), boutonSize1) for i in range(1,5)]
-boutonSaveImg = [pg.transform.smoothscale(pg.image.load("res/startMenu/saveSlot"+str(i+1)+".png"), boutonSize1) for i in range(4)]
+btny1 = (screenSize[1] + bannerRect.centery)/2
+btny2 = bannerRect.centery + (screenSize[1] - bannerRect.centery)/3
+btny3 = bannerRect.centery + 2*(screenSize[1] - bannerRect.centery)/3
 
 # sauvegardes actives
 slotIsEmpty = [not os.path.exists("saves/save_"+str(i+1)) for i in range(4)]
 
-# Nrs boutons
-class boutonNr(IntEnum):
-	RIEN = -1
-	JOUER = 0
-	REGLES = 1
-	NEWGAME = 2
-	LOADGAME = 3
-	PICKNP = 4
-	X = 5
-	LOADSAVE = 6
-
-class startMenu:
-	def __init__(self, screen):
-		self.screen = screen
+class StartMenu:
+	def __init__(self):
 		self.cheatMode = False
 		self.slot = 1
 		self.nPlayers = None
-		self.avatars = None
 		self.mode = 0
 		self.page = 0
-		self.selectedButton = boutonNr.RIEN
-		self.rules = RulesMenu()
+		self.selectedButton = None
+		self.rules = None
 		self.avSelect = None
 
+		# boutons
+		self.buttons = [] # boutons groupés par page du menu principal
+		self.drawables = [] 
+		self.closeButton = CloseButton()
+		# page 0
+		self.playBtn = Button("res/startMenu/play.png", "res/startMenu/play.png", boutonSize1, (w1, 0))
+		self.playBtn.rect.centery = btny1
+		self.rulesBtn = Button("res/startMenu/boutonregles.png", "res/startMenu/boutonregles.png", boutonSize1, (3*w1, 0))
+		self.rulesBtn.rect.centery = btny1
+		self.buttons.append([self.playBtn, self.rulesBtn, self.closeButton])
+		self.drawables.append(pg.sprite.LayeredUpdates(self.buttons[0]))
+		# page 1
+		self.newgameBtn = Button("res/startMenu/newgame.png", "res/startMenu/newgame.png", boutonSize1, (w1, 0))
+		self.newgameBtn.rect.centery = btny1
+		self.loadgameBtn = Button("res/startMenu/loadgame.png", "res/startMenu/loadgame.png", boutonSize1, (3*w1, 0))
+		self.loadgameBtn.rect.centery = btny1
+		self.buttons.append([self.newgameBtn, self.loadgameBtn, self.closeButton])
+		self.drawables.append(pg.sprite.LayeredUpdates(self.buttons[1]))
+		# page 2
+		self.j1Btn = Button("res/startMenu/1joueurs.png", "res/startMenu/1joueurs.png", boutonSize1, (w1, 0))
+		self.j1Btn.rect.centery = btny2
+		self.j2Btn = Button("res/startMenu/2joueurs.png", "res/startMenu/2joueurs.png", boutonSize1, (3*w1, 0))
+		self.j2Btn.rect.centery = btny2
+		self.j3Btn = Button("res/startMenu/3joueurs.png", "res/startMenu/3joueurs.png", boutonSize1, (w1, 0))
+		self.j3Btn.rect.centery = btny3
+		self.j4Btn = Button("res/startMenu/4joueurs.png", "res/startMenu/4joueurs.png", boutonSize1, (3*w1, 0))
+		self.j4Btn.rect.centery = btny3
+		self.buttons.append([self.j1Btn, self.j2Btn, self.j3Btn, self.j4Btn, self.closeButton])
+		self.drawables.append(pg.sprite.LayeredUpdates(self.buttons[2]))
+		# page 3
+		self.save1Btn = Button("res/startMenu/saveSlot1.png", "res/startMenu/saveSlot1.png", boutonSize1, (w1, 0))
+		self.save1Btn.rect.centery = btny2
+		self.save2Btn = Button("res/startMenu/saveSlot2.png", "res/startMenu/saveSlot2.png", boutonSize1, (3*w1, 0))
+		self.save2Btn.rect.centery = btny2
+		self.save3Btn = Button("res/startMenu/saveSlot3.png", "res/startMenu/saveSlot3.png", boutonSize1, (w1, 0))
+		self.save3Btn.rect.centery = btny3
+		self.save4Btn = Button("res/startMenu/saveSlot4.png", "res/startMenu/saveSlot4.png", boutonSize1, (3*w1, 0))
+		self.save4Btn.rect.centery = btny3
+		self.buttons.append([self.save1Btn, self.save2Btn, self.save3Btn, self.save4Btn, self.closeButton])
+		self.drawables.append(pg.sprite.LayeredUpdates(self.buttons[3]))
+		# highlight
+		self.HL = HighLightRect(white, boutonSize1[0]+2*space1, boutonSize1[1]+2*space1, 0,0)
+
+	# renvoie True pour quitter le jeu
 	def leftClick(self):
-		PCgame = "nope"
+		ret = "nope"
 		if self.mode == 1:
 			if self.rules.leftClick():
 				self.mode = 0
-				self.rules = RulesMenu()
-			self.selectedButton = boutonNr.RIEN
+				# self.rules.reset()
 		elif self.mode == 2:
 			match self.avSelect.leftClick():
 				case "close":
-					return "close"
-				case "nope":
-					return PCgame
+					self.mode = 0
+					self.page = 2
 				case "ready":
 					av = self.avSelect.picked
 					if self.nPlayers == 1:
 						av.append(-1)
-					return pointCityGame(self.screen, False, nPlayers=self.nPlayers, avatars=av, cheatMode=self.cheatMode)
+					self.avatars = av
+					return "newgame"
 		else:
+			selectAv = False
 			match self.selectedButton:
-				case boutonNr.X:
-					sys.exit()
-				case boutonNr.REGLES:
+				case self.closeButton:
+					return "close"
+				case self.rulesBtn:
+					self.rules = RulesMenu()
 					self.mode = 1
-				case boutonNr.JOUER:
+				case self.playBtn:
 					self.page = 1
-				case boutonNr.NEWGAME:
+				case self.newgameBtn:
 					self.page = 2
-				case boutonNr.PICKNP:
-					self.avSelect = PlayerSelectMenu(self.nPlayers)
-					self.mode = 2
-				case boutonNr.LOADGAME:
+				case self.loadgameBtn:
 					self.page = 3
-				case boutonNr.LOADSAVE:
-					print("chargement partie ", self.slot)
-					PCgame = pointCityGame(self.screen, True, saveSlot=self.slot)
-		return PCgame
+				case self.j1Btn:
+					self.nPlayers = 1
+					selectAv = True
+				case self.j2Btn:
+					self.nPlayers = 2
+					selectAv = True
+				case self.j3Btn:
+					self.nPlayers = 3
+					selectAv = True
+				case self.j4Btn:
+					self.nPlayers = 4
+					selectAv = True
+				case self.save1Btn:
+					self.slot = 1
+					return "loadgame"
+				case self.save2Btn:
+					self.slot = 2
+					return "loadgame"
+				case self.save3Btn:
+					self.slot = 3
+					return "loadgame"
+				case self.save4Btn:
+					self.slot = 4
+					return "loadgame"
+			if selectAv:
+				self.avSelect = PlayerSelectMenu(self.nPlayers)
+				self.mode = 2
+		self.selectedButton = None
+		return ret
 
 	def retour(self):
-		if self.mode == 0: # menu principal
-			if self.page > 1:
-				self.page = 1
-			elif self.page == 1:
-				self.page = 0
-		elif self.mode == 1: # menu règles
-			self.mode = 0
-			self.rules.page = 0
-		self.selectedButton = boutonNr.RIEN
+		match self.mode:
+			case 0: # menu principal
+				if self.page > 1:
+					self.page = 1
+				elif self.page == 1:
+					self.page = 0
+			case 1: # menu règles
+				self.mode = 0
+				# self.rules.reset()
+			case 2: # menu sel. avatars
+				self.mode = 0
+				self.page = 2
+				# self.avSelect.reset()
+		self.selectedButton = None
 
 	def cheatOrNotCheat(self):
 		self.cheatMode = not self.cheatMode
 		print("cheatMode : "+str(self.cheatMode))
 
 	def update(self):
-		match self.mode: 
-			case 0: # menu principal
-				match self.page:
-					case 0: # menu de départ
-						pass
-			case 1: # menu règles & commandes
-				self.rules.update()
-			case 2: # menu sélection avatars
-				self.avSelect.update()
+		if self.mode == 1: # menu règles & commandes
+			self.rules.update()
+		elif self.mode == 2: # menu sélection avatars
+			self.avSelect.update()
+		else: # menu principal
+			self.drawables[self.page].update()
+			L = [b for b in self.buttons[self.page] if b.isSelected]
+			self.selectedButton = L[0] if len(L) > 0 else None
+			if self.selectedButton and self.selectedButton != self.closeButton:
+				self.HL.move(self.selectedButton.rect.center)
+				self.drawables[self.page].add(self.HL)
+			else:
+				self.drawables[self.page].remove(self.HL)
 
-	def draw(self):
-		mousePos = pg.mouse.get_pos()
-		match self.mode: 
-			case 0: # menu principal
-				self.screen.fill(menuBackgroundColor)
-				self.screen.blit(banner, bannerRect)
-				if boutonXRect.collidepoint(mousePos):
-					self.selectedButton = boutonNr.X
-					self.screen.blit(boutonXImg2, boutonXRect)
-				else: 
-					self.selectedButton = boutonNr.RIEN
-					self.screen.blit(boutonXImg, boutonXRect)
-				match self.page:
-					case 0: # menu de départ
-						if bouton1Rect.collidepoint(mousePos):
-							self.selectedButton = boutonNr.JOUER
-							self.screen.fill(white, bouton1HL)
-						elif bouton2Rect.collidepoint(mousePos):
-							self.selectedButton = boutonNr.REGLES
-							self.screen.fill(white, bouton2HL)
-
-						self.screen.blit(boutonPlayImg, bouton1Rect)
-						self.screen.blit(boutonReglesImg, bouton2Rect)
-					case 1: # menu jouer
-						if bouton1Rect.collidepoint(mousePos):
-							self.selectedButton = boutonNr.NEWGAME
-							self.screen.fill(white, bouton1HL)
-						elif bouton2Rect.collidepoint(mousePos):
-							self.selectedButton = boutonNr.LOADGAME
-							self.screen.fill(white, bouton2HL)
-
-						self.screen.blit(boutonNewGameImg, bouton1Rect)
-						self.screen.blit(boutonLoadGameImg, bouton2Rect)
-					case 2: # menu sélection nb joueurs
-						for i in range(4):
-							if boutonGroup2[i].collidepoint(mousePos):
-								self.selectedButton = boutonNr.PICKNP
-								self.nPlayers = i+1
-								self.screen.fill(white, boutonHLGroup2[i])
-							self.screen.blit(boutonJImg[i], boutonGroup2[i])
-					case 3: # menu sélection sauvegarde
-						for i in range(4):
-							if not slotIsEmpty[i] and boutonGroup2[i].collidepoint(mousePos):
-								self.selectedButton = boutonNr.LOADSAVE
-								self.slot = i+1
-								self.screen.fill(white, boutonHLGroup2[i])
-							self.screen.blit(boutonSaveImg[i], boutonGroup2[i])
-			case 1: # menu règles & commandes
-				self.rules.draw(self.screen)
-			case 2: # menu sélection avatars
-				self.avSelect.draw(self.screen)
+	def draw(self, screen):
+		if self.mode == 1: # menu règles & commandes
+			self.rules.draw(screen)
+		elif self.mode == 2: # menu sélection avatars
+			self.avSelect.draw(screen)
+		else: # menu principal
+			screen.fill(menuBackgroundColor)
+			screen.blit(banner, bannerRect)
+			self.drawables[self.page].draw(screen)

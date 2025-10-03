@@ -26,6 +26,9 @@ class PlayerSelectMenu:
 		self.currentPick = None
 		self.picked = []
 
+	# def reset(self):
+		# self.choosingPlayer = 0
+
 	# renvoie "close" si le jeu ferme, "ready" si on peut lancer une partie, ou "nope" s'il ne se passe rien
 	def leftClick(self):
 		if self.closeButton.isSelected:
