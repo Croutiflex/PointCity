@@ -2,13 +2,13 @@ import pygame as pg
 import sys
 from params import *
 from pointcity import *
+from utils import *
 
 avatarSize = (190, 190)
 winnerBannerSize = (450, 120)
 leftcol = screenSize[0]/4
 rightcol = 3*screenSize[0]/4
 winAvatarRect = pg.Rect((0,0), avatarSize)
-winAvatarRect.center = (midx, space2 + avatarSize[0]/2)
 winnerTitleRect = playerTitleImg[0].get_rect()
 winnerTitleRect.centerx = midx
 winnerTitleRect.top = winAvatarRect.bottom + space1
@@ -19,7 +19,6 @@ winnerBannerRect.top = winnerTitleRect.bottom + space1
 
 tabPos = (screenSize[0]/6, winnerBannerRect.bottom + space3 - space1)
 tabSize = (screenSize[0] - 2*tabPos[0], screenSize[1] - tabPos[1] - space3)
-tabRect = pg.Rect(tabPos, tabSize)
 avL = (tabSize[1] - 4*space1 - 2*space2 - fontsize1)/4
 avatarSize2 = (avL, avL)
 
@@ -44,6 +43,8 @@ class endScreen:
 		self.screen = screen
 		self.playerList = playerList
 		self.modeSolo = playerList[1][0] == -1
+		self.drawables = pg.sprite.LayeredUpdates()
+		self.drawables.add(HighLightRect(menuBackgroundColor, tabSize[0], tabSize[1], 0, tabPos))
 
 		# tri par score + nb de cartes
 		order = [i for i in range(len(playerList))]
@@ -52,42 +53,41 @@ class endScreen:
 
 		if self.modeSolo:
 			i = order.index(0)
-			self.nStars = 3 - i
+			nStars = 3 - i
 			order = [order[2], 0] if i == 3 else [0, order[i+1]]
-			starOffset = i*(space1 + stars[0].w)/2
-			for i in range(self.nStars):
-				stars[i].move_ip(starOffset, 0)
+			stars = [BasicSprite(starImg) for i in range(3)]
+			self.drawables.add(stars)
+			for i in range(3):
+				stars[i].move((5*screenSize[1]/6, midx + (i-1)*(space1 + stars[0].rect.w)))
+			starOffset = i*(space1 + stars[0].rect.w)/2
+			for i in range(nStars):
+				stars[i].rect.move_ip(starOffset, 0)
 
 		# images
-		self.avatars = [pg.transform.smoothscale(avatarImg[playerList[i][0]], avatarSize2) for i in order]
-		self.winAvatar = pg.transform.smoothscale(avatarImg[playerList[order[0]][0]], avatarSize)
-		self.winnerTitle = playerTitleImg[min(order[0], 1) if self.modeSolo else order[0]]
-		self.avatarRect = [a.get_rect() for a in self.avatars]
-		self.scores = [font.render(str(playerList[i][1]), True, darkBlue, menuBackgroundColor) for i in order]
-		self.scoreRect = [i.get_rect() for i in self.scores]
-		self.nCartes = [font.render(str(playerList[i][2]), True, darkBlue, menuBackgroundColor) for i in order]
-		self.nCartesRect = [i.get_rect() for i in self.scores]
-		y = winnerBannerRect.bottom + space2 + space3 + fontsize1
+		self.avatars = [BasicSprite(pg.transform.smoothscale(avatarImg[playerList[i][0]], avatarSize2)) for i in order]
+		self.drawables.add(self.avatars)
+		winAvatar = BasicSprite(pg.transform.smoothscale(avatarImg[playerList[order[0]][0]], avatarSize))
+		winAvatar.move((midx, space2 + avatarSize[0]/2))
+		self.drawables.add(winAvatar)
+		winnerTitle = BasicSprite(playerTitleImg[min(order[0], 1) if self.modeSolo else order[0]])
+		winnerTitle.rect.centerx = midx
+		winnerTitle.rect.top = winAvatar.rect.bottom + space1
+		self.drawables.add(winnerTitle)
+		winnerBanner = BasicSprite(pg.transform.smoothscale(pg.image.load("res/winner.png"), winnerBannerSize))
+		winnerBanner.rect.centerx = midx
+		winnerBanner.rect.top = winnerTitle.rect.bottom + space1
+		self.drawables.add(winnerBanner)
+		scores = [BasicSprite(font.render(str(playerList[i][1]), True, darkBlue, menuBackgroundColor)) for i in order]
+		self.drawables.add(scores)
+		nCartes = [BasicSprite(font.render(str(playerList[i][2]), True, darkBlue, menuBackgroundColor)) for i in order]
+		self.drawables.add(nCartes)
+		y = winnerBanner.rect.bottom + space2 + space3 + fontsize1
 		for i in range(len(order)):
-			self.avatarRect[i].centerx = leftcol
-			self.avatarRect[i].top = y + i*(avL + space1)
-			self.scoreRect[i].centerx = midx
-			self.scoreRect[i].centery = self.avatarRect[i].centery
-			self.nCartesRect[i].centerx = rightcol
-			self.nCartesRect[i].centery = self.avatarRect[i].centery
+			self.avatars[i].rect.centerx = leftcol
+			self.avatars[i].rect.top = y + i*(avL + space1)
+			scores[i].move((midx, self.avatars[i].rect.centery))
+			nCartes[i].move((rightcol, self.avatars[i].rect.centery))
 
-	def draw(self):
-		self.screen.blit(backGround, (0,0))
-		self.screen.fill(menuBackgroundColor, tabRect)
-		self.screen.blit(self.winAvatar, winAvatarRect)
-		self.screen.blit(self.winnerTitle, winnerTitleRect)
-		self.screen.blit(winnerBanner, winnerBannerRect)
-		if self.modeSolo:
-			for i in range(self.nStars):
-				self.screen.blit(starImg, stars[i])
-		for i in range(3):
-			self.screen.blit(titles[i], titleRect[i])
-		for i in range(2 if self.modeSolo else len(self.playerList)):
-			self.screen.blit(self.avatars[i], self.avatarRect[i])
-			self.screen.blit(self.scores[i], self.scoreRect[i])
-			self.screen.blit(self.nCartes[i], self.nCartesRect[i])
+	def draw(self, screen):
+		screen.blit(backGround, (0,0))
+		self.drawables.draw(screen)

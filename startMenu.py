@@ -76,7 +76,7 @@ class StartMenu:
 		self.buttons.append([self.save1Btn, self.save2Btn, self.save3Btn, self.save4Btn, self.closeButton])
 		self.drawables.append(pg.sprite.LayeredUpdates(self.buttons[3]))
 		# highlight
-		self.HL = HighLightRect(white, boutonSize1[0]+2*space1, boutonSize1[1]+2*space1, 0,0)
+		self.HL = HighLightRect(white, boutonSize1[0]+2*space1, boutonSize1[1]+2*space1, (0,0))
 
 	# renvoie True pour quitter le jeu
 	def leftClick(self):

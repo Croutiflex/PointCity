@@ -1,34 +1,72 @@
 import pygame as pg
 from params import *
 
+w, h = 2*space1+cardSize[0][0], 2*space1+cardSize[0][1]
 # card positions :
 # 0 1 2 3
 # 4 5 6 7
 # 8 9 10 11
 # 12 13 14 15
-class pointCityMarket:
-	def __init__(self, screen, cards, modeSolo=False):
-		self.screen = screen
+class PointCityMarket:
+	def __init__(self, cards, modeSolo=False):
 		self.modeSolo = modeSolo
-		self.automaCards = [4, 8] if modeSolo else []
+		self.gamePhase = GPhase.DISCOVER
 		self.selectedCards = []
 		self.adjCards = []
-		self.lastMousePos = -1
-		self.cards = pg.sprite.RenderUpdates()
-		self.highlightOn = pg.sprite.RenderUpdates()
+
+		self.cards = cards
 		(x,y) = marketPos
 		for i in range(4):
 			x = marketPos[0]
 			for j in range(4):
-				card = cards.pop()
-				card.rect = card.image.get_rect(x=x, y=y)
-				self.cards.add(card)
-				self.highlightOn.add(cardHighLight(backgroundColor, 2*space1+cardSize[0], 2*space1+cardSize[1], x-space1, y-space1))
+				card.move(x,y)
 				x += cardSize[0] + space2
 			y += cardSize[1] + space2
+		self.drawables = pg.sprite.LayeredUpdates(self.cards)
+		self.blueHL = HighLightRect(blue, w, h)
+		self.whiteHL = HighLightRect(white, w, h)
+		if modeSolo:
+			self.automaCards = [4, 8]
+			self.automaHL = [HighLightRect(orange, w, h, layer=-1) for i in range(2)]
+			self.drawables.add(self.automaHL)
+
+		self.greenHL = pg.sprite.RenderPlain()
 
 	def update(self):
-		pass
+		if self.gamePhase == GPhase.MARKET:
+			i = self.findCard(pg.mouse.get_pos())
+			if i == -1:
+				self.drawables.remove(self.whiteHL)
+			elif len(self.selectedCards) == 1:
+				if i in self.adjCards:
+					self.whiteHL.move(self.cards[i].rect.center)
+					self.drawables.add(self.whiteHL)
+				else:
+					self.drawables.remove(self.whiteHL)
+			else:
+				self.whiteHL.move(self.cards[i].rect.center)
+				self.drawables.add(self.whiteHL)
+		elif self.gamePhase == GPhase.DISCOVER:
+			i = self.findCard(pg.mouse.get_pos())
+			if i == -1:
+				self.drawables.remove(self.whiteHL)
+			else:
+				self.whiteHL.move(self.cards[i].rect.center)
+				self.drawables.add(self.whiteHL)
+
+	def goToNewTurn(self):
+		if self.modeSolo:
+			self.drawables.add(self.automaHL)
+		self.updateFlip()
+		if self.canFlip():
+			self.gamePhase = GPhase.DISCOVER
+		else:
+			self.gamePhase = GPhase.MARKET
+
+	def endMarketPhase(self):
+		self.drawables.remove(self.whiteHL)
+		self.drawables.remove(self.automaHL)
+		self.drawables.remove(self.blueHL)
 
 	# si la souris est sur une carte, renvoie ses coordonnées. sinon -1.
 	def findCard(self, mousePos):
@@ -55,7 +93,6 @@ class pointCityMarket:
 		if i == -1:
 			return False
 		if self.cards[i].flip():
-			self.updateFlip()
 			return True
 		return False
 
@@ -63,25 +100,25 @@ class pointCityMarket:
 	def selectCard(self, mousePos):
 		i = self.findCard(mousePos)
 		if i == -1:
-			return self.selectedCards
+			return
 		if len(self.selectedCards) == 0:
-			self.selectedCards.append(i)
-			self.highlightOn[i].set_color(blue)
+			self.selectedCards.append(self.cards[i])
+			self.blueHL.move(self.cards[i].rect.center)
+			self.drawables.add(self.blueHL)
 			self.adjCards = self.findAdjacent(i)
-			return self.selectedCards
 		elif len(self.selectedCards) == 1:
 			if i in self.adjCards:
 				self.adjCards = []
 				L = self.selectedCards
-				L.append(i)
+				L.append(self.cards[i])
 				self.selectedCards = []
+				self.drawables.remove(self.blueHL)
 				return L
-			else:
-				return self.selectedCards
+		return self.selectedCards
 
 	def cancelSelect(self):
 		if len(self.selectedCards) > 0:
-			self.highlightOn[self.selectedCards[0]].set_color(backgroundColor)
+			self.drawables.remove(self.blueHL)
 			self.selectedCards = []
 			self.adjCards = []
 
@@ -95,7 +132,6 @@ class pointCityMarket:
 					break
 			for k in range(4):
 			 	self.cards[i//4 + k].canFlip = v
-
 		# vertically
 		for j in range(4):
 			v = True
@@ -105,6 +141,10 @@ class pointCityMarket:
 					break
 			for k in range(4):
 			 	self.cards[k//4 + j].canFlip = v or self.cards[k//4 + j].canFlip
+		# update green HL
+		for c in self.cards:
+			if c.canFlip:
+				self.greenHL.add(HighLightRect(green, w, h, layer=0,pos=c.rect.center))
 
 	# can we flip a card?
 	def canFlip(self):
@@ -125,58 +165,9 @@ class pointCityMarket:
 			else:
 				i += 5
 			self.automaCards.append(i)
+			self.automaHL[x].move(cards[i].rect.center)
 
-	def draw(self, gamePhase):
-		(x,y) = self.findCard(pg.mouse.get_pos())
-		# self.screen.fill(backgroundColor, marketBackgroundRect)
-		match gamePhase:
-			case GPhase.DISCOVER:
-				for i in range(4):
-					for j in range(4):
-						if self.cards[i][j].canFlip:
-							self.screen.fill(green, self.highlightRects[i][j])
-				if x != -1 and self.cards[x][y].canFlip:
-					self.screen.fill(white, self.highlightRects[x][y])
-			case GPhase.MARKET:
-				for (i,j) in self.automaCards:
-					self.screen.fill(orange, self.highlightRects[i][j])
-				if len(self.selectedCards) == 1:
-					(i,j) = self.selectedCards[0]
-					self.screen.fill(blue, self.highlightRects[i][j])
-					if (x,y) in self.adjCards:
-						self.screen.fill(white, self.highlightRects[x][y])
-				elif x != -1:
-					self.screen.fill(white, self.highlightRects[x][y])
-
-		for i in range(4):
-			for j in range(4):
-				if self.cards[i][j] != None:
-					self.cards[i][j].draw(self.cardPos[i][j])
-
-	def lazyDraw(self, gamePhase): # deprecated
-		(x,y) = self.findCard(pg.mouse.get_pos())
-		(a,b) = self.lastMousePos
-		if (x,y) == (a,b):
-			return
-		match gamePhase:
-			case GPhase.DISCOVER:
-				if x != -1:
-					self.drawSingleCard((x,y), white)
-				if a != -1:
-					self.drawSingleCard((a,b), green if self.cards[a][b].canFlip else backgroundColor)
-			case GPhase.MARKET:
-				if len(self.selectedCards) == 1:
-					if (x,y) in self.adjCards:
-						self.drawSingleCard((x,y), white)
-				elif x != -1:
-					self.drawSingleCard((x,y), white)
-				if a != -1:
-					if len(self.selectedCards) != 1 or self.selectedCards[0] != (a,b):
-						self.drawSingleCard((a,b), backgroundColor)
-		self.lastMousePos = (x,y)
-
-	def drawSingleCard(self, card, color):
-		# print("last draw: ", card, color)
-		(i,j) = card
-		self.screen.fill(color, self.highlightRects[i][j])
-		self.cards[i][j].draw(self.cardPos[i][j])
+	def draw(self, screen):
+		if self.gamePhase == GPhase.DISCOVER:
+			self.greenHL.draw(screen)
+		self.drawables.draw(screen)

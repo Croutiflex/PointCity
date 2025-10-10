@@ -1,12 +1,20 @@
 import pygame as pg
 from params import *
 
+class BasicSprite(pg.sprite.Sprite):
+	def __init__(self,image,layer=1,pos=(0,0)):
+		pg.sprite.Sprite.__init__(self)
+		self.image = image
+		self.rect = self.image.get_rect(x=pos[0], y=pos[1])
+	def move(self,pos):
+		self.rect.center = pos
+
 class HighLightRect(pg.sprite.Sprite):
-	def __init__(self,color,width,height,x,y):
+	def __init__(self,color,width,height,layer=1,pos=(0,0)):
 		pg.sprite.Sprite.__init__(self)
 		self.image = pg.Surface([width, height])
 		self.image.fill(color)
-		self.rect = self.image.get_rect(x=x,y=y)
+		self.rect = self.image.get_rect(centerx=pos[0], centery=pos[1])
 		self.layer = 1
 	def set_color(self,color):
 		self.image.fill(color)

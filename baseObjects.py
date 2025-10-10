@@ -1,9 +1,10 @@
 import pygame as pg
 from params import *
+import os
 
-class pointCityCard(pg.sprite.Sprite):
+class PointCityCard(pg.sprite.Sprite):
 	def __init__(self, tier, ressource, type, cost, value, Id, pos=(0,0)):
-		super().__init__(self)
+		pg.sprite.Sprite.__init__(self)
 		# constant
 		self.Id = Id
 		self.tier = tier
@@ -12,49 +13,54 @@ class pointCityCard(pg.sprite.Sprite):
 		self.cost = cost
 		self.value = value
 		self.size = 0
-		img1 = ImgRes[ressource] if tier == 0 else ImgRes2[ressource]
-		img2 = batiments[Id] if Id >= 0 else pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize)
-		self.imageRes = [img1, pg.transform.smoothscale(img1, cardSize2), pg.transform.smoothscale(img1, cardSize3)] # image face ressource, par taille
-		self.imageBat = [img2, pg.transform.smoothscale(img2, cardSize2), pg.transform.smoothscale(img2, cardSize3)] # image face batiment, par taille
+
 		# variable
+		self.imageRes = ImgRes[ressource] if tier == 0 else ImgRes2[ressource]
+		file = "res/batiments/"+str(Id)+".png"
+		if os.path.exists(file):
+			self.imageBat = pg.transform.smoothscale(pg.image.load(file), cardSize)
+		else:
+			self.imageBat = pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize)
 		self.side = RESSOURCE
 		self.canFlip = True
-		self.image = self.getImage()
+		self.image = self.imageRes
 		self.rect = self.image.get_rect(x = pos[0], y = pos[1])
 
 	def __str__(self):
 		return str(self.ressource)
 
-	def getImage(self, size=-1):
-		s = self.size if size == -1 else size-1
-		return self.imageRes[s] if self.side == RESSOURCE else self.imageBat[s]
-
 	# renvoie True si la carte a été retournée, false sinon
 	def flip(self):
 		if self.canFlip:
 			self.side = BATIMENT
+			self.image = self.imageBat
 			return True
 		return False
 
 	def resize(self, size):
-		self.size = size - 1
+		self.size = size
+		self.image = pg.transform.smoothscale(self.image, cardSize[size])
+		self.rect = self.image.get_rect(x = self.rect.x, y = self.rect.y)
 
-	def draw(self, pos):
-		self.screen.blit(self.getImage(), pos)
+	def move(x,y):
+		self.rect.x = x
+		self.rect.y = y
 
-
-class pointCityToken:
-	def __init__(self, screen, type, info, Id):
+class PointCityToken(pg.sprite.Sprite):
+	def __init__(self, type, info, Id, pos = (0,0)):
+		pg.sprite.Sprite.__init__(self)
 		self.Id = Id
-		self.screen = screen
 		self.type = type
 		self.info = info
 		self.size = 0
-		img = jetons[Id]
-		self.image = [img, pg.transform.smoothscale(img, (tokenSize2, tokenSize2)), pg.transform.smoothscale(img, (tokenSize3, tokenSize3))]
+		self.image = pg.transform.smoothscale(pg.image.load("res/jetons/"+str(Id)+".png"), tokenSize[0])
+		self.rect = self.image.get_rect(x = pos[0], y = pos[1])
 
 	def resize(self, size):
-		self.size = size - 1
+		self.size = size
+		self.image = pg.transform.smoothscale(self.image, tokenSize[size])
+		self.rect = self.image.get_rect(x = self.rect.x, y = self.rect.y)
 
-	def getImage(self):
-		return self.image[self.size]
+	def move(x,y):
+		self.rect.x = x
+		self.rect.y = y

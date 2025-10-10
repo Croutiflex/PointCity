@@ -71,16 +71,17 @@ maxFramerate = 60
 cardH = (screenSize[1] - 2*space3 - 3*space2)/4
 # cardH = 500
 cardL = cardH*cardRatio
-cardSize = (cardL, cardH)
+cardSize1 = (cardL, cardH)
 marketPos = (space3, space3)
 piochePos = (space3*2 + cardL*4 + space2*3, space3)
-piocheTextPos = (piochePos[0] + cardSize[0] + space1, piochePos[1])
-tkMarketPos = (piochePos[0], piochePos[1] + cardSize[1] + space2)
-tokenSize = (screenSize[1]-2*space3-space2-6*space1-cardH)/7
-TKR = space1 + tokenSize/2
+piocheTextPos = (piochePos[0] + cardSize1[0] + space1, piochePos[1])
+tkMarketPos = (piochePos[0], piochePos[1] + cardSize1[1] + space2)
+tokenD1 = (screenSize[1]-2*space3-space2-6*space1-cardH)/7
+tokenSize1 = (tokenD1, tokenD1)
+TKR = space1 + tokenD1/2
 
 # inventaires
-PIx = piochePos[0] + tokenSize*2 + space1 + space3
+PIx = piochePos[0] + tokenD1*2 + space1 + space3
 PIL = screenSize[0] - PIx - space3
 PIxHalf = PIx + PIL/2
 PIH = (screenSize[1] - 2*space3)/2 - space2
@@ -93,12 +94,13 @@ titleH = 2*fontsize1
 # inventaire détaillé
 cardH2 = (PIH - 2*space1 - space2)/2.5
 cardSize2 = (cardH2*cardRatio, cardH2)
-tokenSize2 = (PIL/5 + space1*2)/2
+tokenD2 = (PIL/5 + space1*2)/2
+tokenSize2 = (tokenD2, tokenD2)
 avatarPos = (PIx + space2, titlePos[0][1] + titleH + space2)
 avatarL = cardSize2[1] - space2 - titleH
 avatarSize1 = (avatarL, avatarL)
 tokenPosL = (PIx + space1, titlePos[0][1] + cardSize2[1] + space2)
-handPosL = (titlePos[0][0] + tokenSize2*2 + space1, titlePos[0][1])
+handPosL = (titlePos[0][0] + tokenD2*2 + space1, titlePos[0][1])
 muniPosL = (handPosL[0] + cardSize2[0]*2.5 + space1, handPosL[1])
 handRect = pg.Rect(handPosL, (muniPosL[0] - handPosL[0] - space1, cardSize2[1])).scale_by(1.05)
 pointsPosL = (screenSize[0] - space3 - space2 - cardSize2[0], handPosL[1])
@@ -106,7 +108,8 @@ cityPosL = [(handPosL[0], handPosL[1] + cardH2 + space2)]
 cityPosL += [(cityPosL[0][0] + i*(cardSize2[0] + space2), cityPosL[0][1]) for i in range(1,5)]
 
 # inventaire réduit, par joueur après le 1er
-tokenSize3 = PIh - space2 - 2*space1 - fontsize1
+tokenD3 = PIh - space2 - 2*space1 - fontsize1
+tokenSize3 = (tokenD3, tokenD3)
 cardH3 = PIh - 2*space1 - fontsize1 - space2
 cardSize3 = (cardH3*cardRatio, cardH3)
 tokenPosl = [(p[0], p[1] + fontsize1 + space1) for p in titlePos[1:]]
@@ -117,6 +120,9 @@ prodTextX = [x + fontsize1*2 for x in iconResX]
 pointBubbleR1 = fontsize1+space1
 pointBubbleR2 = fontsize1
 pointBubbleCenter = [(R.right-pointBubbleR1, R.top+pointBubbleR1) for R in PIRect[1:]]
+
+cardSize = [cardSize1, cardSize2, cardSize3]
+tokenSize = [tokenSize1, tokenSize2, tokenSize3]
 
 # fonds
 marketBackgroundRect = pg.Rect((0,0), (PIx, screenSize[1]))
@@ -150,43 +156,43 @@ cursorImg = pg.transform.smoothscale(pg.image.load("res/cursor.png"), cursorSize
 backGround = pg.image.load("res/bg.png")
 # RESSOURCES
 ImgRes = []
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/commu.png"), cardSize))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/economie.png"), cardSize))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/energie.png"), cardSize))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ecologie.png"), cardSize))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/industrie.png"), cardSize))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/commu.png"), cardSize[0]))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/economie.png"), cardSize[0]))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/energie.png"), cardSize[0]))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ecologie.png"), cardSize[0]))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/industrie.png"), cardSize[0]))
+ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize[0]))
 
 ImgRes2 = []
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/commu_double.png"), cardSize))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/economie_double.png"), cardSize))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/energie_double.png"), cardSize))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ecologie_double.png"), cardSize))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/industrie_double.png"), cardSize))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/commu_double.png"), cardSize[0]))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/economie_double.png"), cardSize[0]))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/energie_double.png"), cardSize[0]))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ecologie_double.png"), cardSize[0]))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/industrie_double.png"), cardSize[0]))
+ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize[0]))
 
 iconRes = [pg.transform.smoothscale(pg.image.load("res/icon"+str(i)+".png"), iconResSize) for i in range(5)]
 
 # BATIMENTS
-batiments = []
-for i in range(160):
-	file = "res/batiments/"+str(i)+".png"
-	if os.path.exists(file):
-		batiments.append(pg.transform.smoothscale(pg.image.load(file), cardSize))
-	else:
-		batiments.append(pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize))
+# batiments = []
+# for i in range(160):
+# 	file = "res/batiments/"+str(i)+".png"
+# 	if os.path.exists(file):
+# 		batiments.append(pg.transform.smoothscale(pg.image.load(file), cardSize))
+# 	else:
+# 		batiments.append(pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize))
 
 # JETONS
-jetons = []
-for i in range(22):
-	jetons.append(pg.transform.smoothscale(pg.image.load("res/jetons/"+str(i)+".png"), (tokenSize, tokenSize)))
+# jetons = []
+# for i in range(22):
+# 	jetons.append(pg.transform.smoothscale(pg.image.load("res/jetons/"+str(i)+".png"), tokenSize[0]))
 
 # POPUP
 lastTurnPopUpImage = pg.transform.smoothscale(pg.image.load("res/dernierTour.png"), lastTurnPopUpSize)
 
 # Joueurs
-playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+".png"), (2*tokenSize2, titleH)) for i in range(4)]
-playerTitleImgSmall = [playerTitleImg[i].subsurface(pg.Rect(0, fontsize1/2, 2*tokenSize2, fontsize1)) for i in range(4)]
+playerTitleImg = [pg.transform.smoothscale(pg.image.load("res/joueur"+str(i+1)+".png"), (2*tokenD2, titleH)) for i in range(4)]
+playerTitleImgSmall = [playerTitleImg[i].subsurface(pg.Rect(0, fontsize1/2, 2*tokenD2, fontsize1)) for i in range(4)]
 
 # avatars
 avatarImg = [pg.image.load("res/avatars/"+str(i)+".png") for i in range(1,14)]

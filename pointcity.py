@@ -241,8 +241,6 @@ class pointCityGame:
 			case GPhase.DISCOVER:
 				if self.market.flipCard(mousePos):
 					self.gamePhase = GPhase.MARKET
-					self.market.draw(self.gamePhase)
-					self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
 			case GPhase.MARKET:
 				if self.piocheRect.collidepoint(mousePos) and len(self.market.selectedCards) == 0: # pioche directe
 					self.directDraw()
@@ -635,6 +633,9 @@ class pointCityGame:
 	# est-ce qu'il y a des anim. en cours?
 	def isAnimating(self):
 		return len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) > 0
+
+	def update(self):
+		self.market.update()
 
 	def drawBase(self):
 		self.screen.fill(backgroundColor)
