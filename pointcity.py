@@ -19,9 +19,8 @@ class pointCityGame:
 		self.startingPlayer = 0 if self.modeSolo else random.randint(0, nPlayers - 1) # qui commence?
 		self.currentPlayer = self.startingPlayer # à qui le tour?
 		self.gamePhase = GPhase.DISCOVER # quelle phase de jeu?
-		self.translationsMJ = [] # marché vers joueur
-		self.translationsPM = [] # pioche vers marché
-		self.translationsPJ = [] # pioche vers joueur
+		self.movingCards = pg.sprite.RenderPlain()
+		self.TLQueue = []
 		self.lastTurnPopup = popUp(self.screen, lastTurnPopUpImage, popUpPos)
 		self.newTurnPopup = nextTurnPopUp(self.screen, pg.transform.smoothscale(avatarImg[0], avatarSize1), popUpPos)
 		self.playerInventory = []
@@ -636,6 +635,14 @@ class pointCityGame:
 
 	def update(self):
 		self.market.update()
+		#animations
+		if self.movingCards:
+			self.movingCards.update()
+			for s in self.movingCards.sprites():
+				if s.done:
+					self.movingCards.remove(s)
+			if !self.movingCards and len(self.TLQueue) > 0:
+				self.movingCards.add(self.TLQueue.pop(0))
 
 	def drawBase(self):
 		self.screen.fill(backgroundColor)
@@ -677,28 +684,7 @@ class pointCityGame:
 		self.screen.blit(pText, pText.get_rect().move(piocheTextPos))
 		
 		# animations
-		if len(self.translationsPJ) > 0:
-			t = self.translationsPJ.pop(0)
-			t.draw()
-			if not t.done:
-				self.translationsPJ.insert(0, t)
-
-		l = len(self.translationsMJ)
-		L = []
-		while len(self.translationsMJ) > 0:
-			t = self.translationsMJ.pop()
-			if not t.done:			
-				t.draw()
-				L.append(t)
-		if l > 0 and len(L) == 0 and len(self.pioche) > 1:
-			self.pioche = self.pioche[1:]
-		self.translationsMJ = L
-
-		if len(self.translationsMJ) == 0 and len(self.translationsPM) > 0:
-			t = self.translationsPM.pop(0)
-			if not t.done:			
-				t.draw()
-				self.translationsPM.insert(0, t)
+		self.movingCards.draw(self.screen)
 
 		# popups
 		if self.newTurnPopup.on:

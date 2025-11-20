@@ -9,6 +9,21 @@ class BasicSprite(pg.sprite.Sprite):
 	def move(self,pos):
 		self.rect.center = pos
 
+class SpriteWithTL(BasicSprite):
+	def __init__(self, A, B, onDone, duration=translationTime):
+		# print('Nouvelle anim')
+		self.screen = screen
+		self.image = image
+		self.A = A
+		self.B = B
+		self.speedVector = ((B[0]-A[0])/duration, (B[1]-A[1])/duration)
+		self.currentPos = self.A
+		self.duration = duration
+		self.lastFrameTime = None
+		self.elapsedTime = 0
+		self.done = False
+		self.onDone = onDone
+
 class HighLightRect(pg.sprite.Sprite):
 	def __init__(self,color,width,height,layer=1,pos=(0,0)):
 		pg.sprite.Sprite.__init__(self)

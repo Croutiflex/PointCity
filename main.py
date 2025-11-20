@@ -17,7 +17,7 @@ def main():
 	pg.mouse.set_cursor(pg.cursors.Cursor(cursorHotspot, cursorImg))
 
 	running = True
-	displayFPS = True
+	displayFPS = False
 	startMenu = StartMenu()
 	MainMenu = mainMenu(screen)
 	PCGame = None
@@ -26,8 +26,8 @@ def main():
 
 	# test
 	# EndScreen = endScreen(screen, [(i, i%2*10, i) for i in range(4)])
-	EndScreen = endScreen(screen, [(11, 18, 7)] + [(-1, i*9, 4) for i in range(3)])
-	state = "SCORES"
+	# EndScreen = endScreen(screen, [(11, 18, 7)] + [(-1, i*9, 4) for i in range(3)])
+	# state = "SCORES"
 
 	# frame loop
 	while running:

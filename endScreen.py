@@ -17,7 +17,7 @@ winnerBannerRect = winnerBanner.get_rect()
 winnerBannerRect.centerx = midx
 winnerBannerRect.top = winnerTitleRect.bottom + space1
 
-tabPos = (screenSize[0]/6, winnerBannerRect.bottom + space3 - space1)
+tabPos = (screenSize[0]/6, winnerBannerRect.bottom + space3)
 tabSize = (screenSize[0] - 2*tabPos[0], screenSize[1] - tabPos[1] - space3)
 avL = (tabSize[1] - 4*space1 - 2*space2 - fontsize1)/4
 avatarSize2 = (avL, avL)
@@ -44,7 +44,7 @@ class endScreen:
 		self.playerList = playerList
 		self.modeSolo = playerList[1][0] == -1
 		self.drawables = pg.sprite.LayeredUpdates()
-		self.drawables.add(HighLightRect(menuBackgroundColor, tabSize[0], tabSize[1], 0, tabPos))
+		self.tabRect = pg.Rect(tabPos, tabSize)
 
 		# tri par score + nb de cartes
 		order = [i for i in range(len(playerList))]
@@ -57,11 +57,11 @@ class endScreen:
 			order = [order[2], 0] if i == 3 else [0, order[i+1]]
 			stars = [BasicSprite(starImg) for i in range(3)]
 			self.drawables.add(stars)
-			for i in range(3):
-				stars[i].move((5*screenSize[1]/6, midx + (i-1)*(space1 + stars[0].rect.w)))
+			for j in range(3):
+				stars[j].move((midx + (j-1)*(space1 + stars[0].rect.w), 5*screenSize[1]/6))
 			starOffset = i*(space1 + stars[0].rect.w)/2
-			for i in range(nStars):
-				stars[i].rect.move_ip(starOffset, 0)
+			for j in range(nStars):
+				stars[j].rect.move_ip(starOffset, 0)
 
 		# images
 		self.avatars = [BasicSprite(pg.transform.smoothscale(avatarImg[playerList[i][0]], avatarSize2)) for i in order]
@@ -90,4 +90,5 @@ class endScreen:
 
 	def draw(self, screen):
 		screen.blit(backGround, (0,0))
+		screen.fill(menuBackgroundColor, self.tabRect)
 		self.drawables.draw(screen)
