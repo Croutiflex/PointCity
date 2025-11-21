@@ -1,8 +1,9 @@
 import pygame as pg
 from params import *
+from utils import *
 import os
 
-class PointCityCard(pg.sprite.Sprite):
+class PointCityCard(SpriteWithTL):
 	def __init__(self, tier, ressource, type, cost, value, Id, pos=(0,0)):
 		pg.sprite.Sprite.__init__(self)
 		# constant
@@ -18,13 +19,13 @@ class PointCityCard(pg.sprite.Sprite):
 		self.imageRes = ImgRes[ressource] if tier == 0 else ImgRes2[ressource]
 		file = "res/batiments/"+str(Id)+".png"
 		if os.path.exists(file):
-			self.imageBat = pg.transform.smoothscale(pg.image.load(file), cardSize)
+			self.imageBat = pg.transform.smoothscale(pg.image.load(file), cardSize[0])
 		else:
-			self.imageBat = pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize)
+			self.imageBat = pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize[0])
 		self.side = RESSOURCE
 		self.canFlip = True
 		self.image = self.imageRes
-		self.rect = self.image.get_rect(x = pos[0], y = pos[1])
+		self.rect = self.image.get_rect(x=pos[0], y=pos[1])
 
 	def __str__(self):
 		return str(self.ressource)
@@ -42,11 +43,7 @@ class PointCityCard(pg.sprite.Sprite):
 		self.image = pg.transform.smoothscale(self.image, cardSize[size])
 		self.rect = self.image.get_rect(x = self.rect.x, y = self.rect.y)
 
-	def move(x,y):
-		self.rect.x = x
-		self.rect.y = y
-
-class PointCityToken(pg.sprite.Sprite):
+class PointCityToken(SpriteWithTL):
 	def __init__(self, type, info, Id, pos = (0,0)):
 		pg.sprite.Sprite.__init__(self)
 		self.Id = Id

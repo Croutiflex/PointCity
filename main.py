@@ -66,12 +66,12 @@ def main():
 							av = startMenu.avSelect.picked
 							if startMenu.nPlayers == 1:
 								av.append(-1)
-							PCGame = pointCityGame(screen, False, nPlayers=startMenu.nPlayers, avatars=av, cheatMode=startMenu.cheatMode)
+							PCGame = PointCityGame(screen, False, nPlayers=startMenu.nPlayers, avatars=av, cheatMode=startMenu.cheatMode)
 							state = "GAME"
 							del startMenu
 						case "loadgame":
 							print("chargement partie ", startMenu.slot)
-							PCgame = pointCityGame(screen, True, saveSlot=startMenu.slot)
+							PCgame = PointCityGame(screen, True, saveSlot=startMenu.slot)
 							state = "GAME"
 							del startMenu
 				if "escape" in events:

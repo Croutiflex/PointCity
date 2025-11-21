@@ -9,7 +9,7 @@ from inventory import *
 from popup import *
 from endScreen import *
 
-class pointCityGame:
+class PointCityGame:
 	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False, avatars=None):
 		self.screen = screen
 		self.cheatMode = cheatMode
@@ -27,7 +27,7 @@ class pointCityGame:
 		self.over = False
 		self.piocheText = pg.font.Font('freesansbold.ttf', fontsize1)
 		(x,y) = piochePos
-		self.piocheRect = pg.Rect(x-space1, y-space1, 2*space1+cardSize[0], 2*space1+cardSize[1])
+		self.piocheRect = pg.Rect(x-space1, y-space1, 2*space1+cardSize[0][0], 2*space1+cardSize[0][1])
 
 		# lecture du détail des cartes & jetons
 		tier1cards = []
@@ -42,7 +42,7 @@ class pointCityGame:
 			cost = [int(c) for c in LL[3][1:-1].split(',')]
 			value = int(LL[4])
 			Id = int(LL[5])
-			card = pointCityCard(screen, tier, ressource, type, cost, value, Id)
+			card = PointCityCard(tier, ressource, type, cost, value, Id)
 			match tier:
 				case 0:
 					tier1cards.append(card)
@@ -55,7 +55,7 @@ class pointCityGame:
 		allTokens = []
 		for L in f.readlines()[1:]:
 			(type, info, Id) = L.split('\t')
-			allTokens.append(pointCityToken(screen, int(type), info, int(Id)))
+			allTokens.append(PointCityToken(int(type), info, int(Id)))
 		f.close()
 
 		if isLoadedGame: # partie sauvegardée
@@ -87,7 +87,7 @@ class pointCityGame:
 			Id = self.currentPlayer
 			print("au tour du joueur ", self.currentPlayer+1)
 			for pos in range(self.nPlayers):
-				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, avatars[Id], False))
+				self.playerInventory.append(PointCityPlayerInventory(screen, Id, pos, avatars[Id], False))
 				Id += 1
 				if Id == self.nPlayers:
 					Id = 0
@@ -106,7 +106,7 @@ class pointCityGame:
 			for i in range(self.nPlayers):
 				if len(self.playerInventory[i].tokens) > 0:
 					self.playerInventory[i].updateTokenPos(True)
-			self.tokenMarket = pointCityTokenMarket(screen, marketTokens, self.modeSolo)
+			self.tokenMarket = PointCityTokenMarket(screen, marketTokens, self.modeSolo)
 
 			# cartes
 			allCards = tier1cards + tier2cards + tier3cards
@@ -135,7 +135,7 @@ class pointCityGame:
 						self.playerInventory[place-1].addCard(allCards[Id])
 			# for p in self.playerInventory:
 			# 	print("Joueur ", p.Id+1, ", prod:", p.production)
-			self.market = pointCityMarket(screen, marketCards, self.modeSolo)
+			self.market = PointCityMarket(screen, marketCards, self.modeSolo)
 			self.market.updateFlip()
 			if self.modeSolo:
 				x = sum(matos2[:3]) - len(self.pioche) - 16 # nombre de cartes jouées
@@ -149,7 +149,7 @@ class pointCityGame:
 			# if avatars == None:
 			# 	avatars = random.sample(range(8), k=self.nPlayers)
 			for pos in range(self.nPlayers):
-				self.playerInventory.append(pointCityPlayerInventory(screen, Id, pos, avatars[Id]))
+				self.playerInventory.append(PointCityPlayerInventory(screen, Id, pos, avatars[Id]))
 				Id += 1
 				if Id == self.nPlayers:
 					Id = 0
@@ -162,21 +162,15 @@ class pointCityGame:
 			gameMatos = matos[nPlayers-1]
 			cards = tier1cards[:gameMatos[0]] + tier2cards[:gameMatos[1]] + tier3cards[:gameMatos[2]]
 			self.pioche = cards[16:]
+			for c in self.pioche:
+				c.move(piochePos)
 
 			# marché
-			marketCards = []
-			n = 0
-			for i in range(4):
-				L = []
-				for j in range(4):
-					L.append(cards[n])
-					n += 1
-				marketCards.append(L)
-			self.market = pointCityMarket(screen, marketCards, self.modeSolo)
+			self.market = PointCityMarket(cards[:16], self.modeSolo)
 
 			# inventaire des jetons
 			random.shuffle(allTokens)
-			self.tokenMarket = pointCityTokenMarket(screen, allTokens[:gameMatos[3]], self.modeSolo)
+			self.tokenMarket = PointCityTokenMarket(screen, allTokens[:gameMatos[3]], self.modeSolo)
 
 		self.turnsLeft = 1 + int(len(self.pioche)/2)
 		self.turn = 0 # à changer
@@ -232,7 +226,7 @@ class pointCityGame:
 	def leftClick(self, mousePos):
 		if self.over:
 			return
-		if len(self.translationsPM) + len(self.translationsPJ) + len(self.translationsMJ) > 0: # clic ignoré si animation en cours
+		if self.isAnimating(): # clic ignoré si animation en cours
 			return
 		if self.closePopups():
 			return
@@ -263,7 +257,7 @@ class pointCityGame:
 						if self.tokensLeft == 0:
 							self.endTurn()
 					pos = self.playerInventory[self.currentPlayer].updateTokenPos()
-					self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f))
+					# self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f))
 
 	def directDraw(self):
 		if len(self.pioche) == 0:
@@ -274,15 +268,17 @@ class pointCityGame:
 		card1.resize(2)
 		card2 = self.pioche[0]
 		# print("pioche cartes ", card1.Id, " et ", card2.Id)
+		def f2():
+			self.playerInventory[self.currentPlayer].addCard(card2)
+			self.endTurn()
 		def f1():
 			card2.resize(2)
 			self.pioche = self.pioche[1:]
 			self.playerInventory[self.currentPlayer].addCard(card1)
-		def f2():
-			self.playerInventory[self.currentPlayer].addCard(card2)
-			self.endTurn()
-		self.translationsPJ.append(translation(self.screen, card1.getImage(), piochePos, handPosL, f1))
-		self.translationsPJ.append(translation(self.screen, card2.getImage(2), piochePos, handPosL, f2))
+			card2.animate(handPosL, f2)
+			self.movingCards.add(card2)
+		card1.animate(handPosL, f1)
+		self.movingCards.add(card1)
 
 	# Check si l'achat est possible.
 	# /!\ au moins une des cartes sélectionnées doit être un bâtiment.
@@ -439,25 +435,27 @@ class pointCityGame:
 		# animations marché vers joueur
 		if card1.side == RESSOURCE:
 			if batDrawn == 0 or marketResUsed == None: # si la carte du marché n'a pas été utilisée pour l'achat
-				self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
+				pass
+				# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
 		else:
 			pos = muniPosL
 			if card1.type == "ressource":
 				pos = cityPosL[card1.ressource]
 			elif card1.type == "points":
 				pos = pointsPosL
-			self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
+			# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
 
 		if card2.side == RESSOURCE:
 			if batDrawn == 0 or marketResUsed == None: # si la carte n'a pas été utilisée pour l'achat
-				self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
+				pass
+				# self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
 		else:
 			pos = muniPosL
 			if card2.type == "ressource":
 				pos = cityPosL[card2.ressource]
 			if card2.type == "points":
 				pos = pointsPosL
-			self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
+			# self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
 
 		self.market.cards[i][j] = None
 		self.market.cards[k][l] = None
@@ -489,8 +487,8 @@ class pointCityGame:
 			else:
 				self.endTurn()
 		
-		self.translationsPM.append(translation(self.screen, newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
-		self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
+		# self.translationsPM.append(translation(self.screen, newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
+		# self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
 
 	def rightClick(self):
 		if self.closePopups():
@@ -543,24 +541,26 @@ class pointCityGame:
 
 		# animations marché vers joueur
 		if card1.side == RESSOURCE:
-			self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
+			pass
+			# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
 		else:
 			pos = muniPosL
 			if card1.type == "ressource":
 				pos = cityPosL[card1.ressource]
 			elif card1.type == "points":
 				pos = pointsPosL
-			self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
+			# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
 
 		if card2.side == RESSOURCE:
-			self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
+			pass
+			# self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
 		else:
 			pos = muniPosL
 			if card2.type == "ressource":
 				pos = cityPosL[card2.ressource]
 			if card2.type == "points":
 				pos = pointsPosL
-			self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
+			# self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
 
 		self.market.cards[i][j] = None
 		self.market.cards[k][l] = None
@@ -573,7 +573,7 @@ class pointCityGame:
 				def f():
 					self.playerInventory[self.currentPlayer].addToken(tk)
 				pos = self.playerInventory[self.currentPlayer].updateTokenPos()
-				self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[0], pos, f))
+				# self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[0], pos, f))
 			
 		if self.turnsLeft == 1: # si c'est le dernier tour
 			self.endTurn()
@@ -593,8 +593,8 @@ class pointCityGame:
 			self.market.cards[k][l] = newcard2
 			self.endTurn()
 		
-		self.translationsPM.append(translation(self.screen, newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
-		self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
+		# self.translationsPM.append(translation(self.screen, newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
+		# self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
 
 	def endTurn(self):
 		self.turnsLeft -= 1
@@ -631,7 +631,7 @@ class pointCityGame:
 
 	# est-ce qu'il y a des anim. en cours?
 	def isAnimating(self):
-		return len(self.translationsMJ) + len(self.translationsPM) + len(self.translationsPJ) > 0
+		return len(self.movingCards) > 0
 
 	def update(self):
 		self.market.update()
@@ -641,23 +641,23 @@ class pointCityGame:
 			for s in self.movingCards.sprites():
 				if s.done:
 					self.movingCards.remove(s)
-			if !self.movingCards and len(self.TLQueue) > 0:
+			if not self.movingCards and len(self.TLQueue) > 0:
 				self.movingCards.add(self.TLQueue.pop(0))
 
 	def drawBase(self):
 		self.screen.fill(backgroundColor)
 		# marché
-		self.market.draw(self.gamePhase)
+		self.market.draw(self.screen)
 		# pioche
 		if len(self.pioche) > 0:
-			self.pioche[0].draw(piochePos)
+			self.pioche[0].draw(self.screen)
 		pText = self.piocheText.render(str(len(self.pioche)), True, textColor, backgroundColor)
 		self.screen.blit(pText, pText.get_rect().move(piocheTextPos))
 		# jetons
-		self.tokenMarket.draw()
+		self.tokenMarket.draw(self.screen)
 		# joueurs
 		for p in self.playerInventory:
-			p.draw()
+			p.draw(self.screen)
 
 	def draw(self):
 		if self.turnsLeft == 0 and not self.isAnimating(): # fin de partie à la fin des animations
@@ -667,10 +667,10 @@ class pointCityGame:
 		self.screen.fill(backgroundColor)
 
 		# marché, jetons & joueurs
-		self.market.draw(self.gamePhase)
-		self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+		self.market.draw(self.screen)
+		self.tokenMarket.draw(self.screen, self.gamePhase == GPhase.TOKEN)
 		for p in self.playerInventory:
-			p.draw(self.gamePhase == GPhase.MARKET)
+			p.draw(self.screen, self.gamePhase == GPhase.MARKET)
 
 		# pioche
 		if self.gamePhase == GPhase.MARKET and self.piocheRect.collidepoint(pg.mouse.get_pos()) and len(self.market.selectedCards) == 0:
@@ -679,7 +679,7 @@ class pointCityGame:
 			self.screen.fill(backgroundColor, self.piocheRect)
 
 		if len(self.pioche) > 0:
-			self.pioche[0].draw(piochePos)
+			self.pioche[0].draw(self.screen)
 		pText = self.piocheText.render(str(len(self.pioche)), True, textColor, backgroundColor)
 		self.screen.blit(pText, pText.get_rect().move(piocheTextPos))
 		

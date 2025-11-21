@@ -1,5 +1,6 @@
 import pygame as pg
 from params import *
+from utils import *
 
 w, h = 2*space1+cardSize[0][0], 2*space1+cardSize[0][1]
 # card positions :
@@ -19,9 +20,9 @@ class PointCityMarket:
 		for i in range(4):
 			x = marketPos[0]
 			for j in range(4):
-				card.move(x,y)
-				x += cardSize[0] + space2
-			y += cardSize[1] + space2
+				self.cards[i*4+j].move((x,y))
+				x += cardSize[0][0] + space2
+			y += cardSize[0][1] + space2
 		self.drawables = pg.sprite.LayeredUpdates(self.cards)
 		self.blueHL = HighLightRect(blue, w, h)
 		self.whiteHL = HighLightRect(white, w, h)
@@ -71,7 +72,7 @@ class PointCityMarket:
 	# si la souris est sur une carte, renvoie ses coordonnées. sinon -1.
 	def findCard(self, mousePos):
 		for i in range(16):
-			if self.card[i].rect.collidepoint(mousePos):
+			if self.cards[i].rect.collidepoint(mousePos):
 				return i
 		return -1
 

@@ -4,7 +4,7 @@ from baseObjects import *
 import math
 import random
 
-class pointCityPlayerInventory:
+class PointCityPlayerInventory:
 	def __init__(self, screen, Id, pos, avatar=-1, newGame=True):
 		self.screen = screen
 		self.pos = pos
@@ -40,8 +40,8 @@ class pointCityPlayerInventory:
 
 	def addInge(self):
 		self.hasRecentlyChanged = True
-		card = pointCityCard(self.screen, 0, INGENIEUR, 'ressource', None, 0, -1)
-		card.resize(self.getSize())
+		card = PointCityCard(0, INGENIEUR, 'ressource', None, 0, -1)
+		card.resize(self.getSize()-1)
 		self.addCard(card)
 
 	def computeScore(self):
@@ -116,7 +116,7 @@ class pointCityPlayerInventory:
 			return
 		for i in range(1, len(self.resCards)+1):
 			pos = self.handPosL[-i]
-			rect = pg.Rect(pos, cardSize2)
+			rect = pg.Rect(pos, cardSize[0][1])
 			if rect.collidepoint(mousePos):
 				self.hasRecentlyChanged = True
 				if pos[1] < handPosL[1]: # si la carte est déjà sélectionnée
@@ -169,7 +169,7 @@ class pointCityPlayerInventory:
 			return
 		# détail
 		(x,y) = handPosL
-		space = (handRect.w - cardSize2[0])/len(self.resCards)
+		space = (handRect.w - cardSize[1][0])/len(self.resCards)
 		for c in self.resCards:
 			self.handPosL.append((x,y))
 			x += space
@@ -177,7 +177,7 @@ class pointCityPlayerInventory:
 		for i in range(3):
 			hpl = []
 			(x,y) = handPosl[i]
-			space = min(((screenSize[0] - x - space1 - space2 - cardSize3[0])/len(self.resCards)), cardSize3[0]*0.8)
+			space = min(((screenSize[0] - x - space1 - space2 - cardSize[2][0])/len(self.resCards)), cardSize[2][0]*0.8)
 			for i in range(len(self.resCards)):
 				hpl.append((x,y))
 				x += space
@@ -232,11 +232,11 @@ class pointCityPlayerInventory:
 					self.pointsPosL.append((x,y))
 					x -= space
 
-	def drawBatCards(self, ressource):
+	def drawBatCards(self, screen, ressource):
 		for i in range(len(self.batCards[ressource])):
-			self.batCards[ressource][i].draw(self.cityPosL[ressource][i])
+			self.batCards[ressource][i].draw(screen)
 
-	def draw(self, isMarketPhase=False):
+	def draw(self,screen, isMarketPhase=False):
 		if isMarketPhase:
 			isOnHand = handRect.collidepoint(pg.mouse.get_pos())
 			if isOnHand != self.mouseWasOnHand:
@@ -249,31 +249,31 @@ class pointCityPlayerInventory:
 			self.screen.blit(self.avatar, avatarPos)
 			# jetons
 			for tk in range(len(self.tokens)):
-				self.tokens[tk].draw(self.tokenPosL[tk])
+				self.tokens[tk].draw(screen)
 			# main
 			if isMarketPhase and self.mouseWasOnHand:
 				self.screen.fill(white, handRect)
 			for i in range(len(self.resCards)):
-				self.resCards[i].draw(self.handPosL[i])
+				self.resCards[i].draw(screen)
 			# bat. ressources
 			for res in range(5):
-				self.drawBatCards(res)
+				self.drawBatCards(screen, res)
 			# bat. municipaux
 			for i in range(len(self.muniBats)):
-				self.muniBats[i].draw(self.muniPosL[i])
+				self.muniBats[i].draw(screen)
 			# bat. à points
 			for i in range(len(self.pointsBats)):
-				self.pointsBats[i].draw(self.pointsPosL[i])
+				self.pointsBats[i].draw(screen)
 
 		else: # inventaire réduit
 			# nom du joueur
 			self.screen.blit(playerTitleImgSmall[self.Id], titlePos[self.pos])
 			# jetons
 			for tk in range(len(self.tokens)):
-				self.tokens[tk].draw(self.tokenPosl[self.pos - 1][tk])
+				self.tokens[tk].draw(screen)
 			# main
 			for i in range(len(self.resCards)):
-				self.resCards[i].draw(self.handPosl[self.pos - 1][i])
+				self.resCards[i].draw(screen)
 			# production
 			for i in range(5):
 				self.screen.blit(iconRes[i], (iconResX[i], titlePos[self.pos][1]))
@@ -287,15 +287,3 @@ class pointCityPlayerInventory:
 			rect = pText.get_rect()
 			rect.center = pointBubbleCenter[self.pos-1]
 			self.screen.blit(pText, rect)
-
-	def lazyDraw(self, isMarketPhase=False): # deprecated
-		if isMarketPhase:
-			isOnHand = handRect.collidepoint(pg.mouse.get_pos())
-			if isOnHand != self.mouseWasOnHand:
-				self.mouseWasOnHand = isOnHand
-				self.hasRecentlyChanged = True
-		if self.hasRecentlyChanged:
-			# print("draw inv: ", self.Id+1, " at pos ", self.pos)
-			self.resize()
-			self.draw(isMarketPhase)
-			self.hasRecentlyChanged = False

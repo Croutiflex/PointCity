@@ -6,23 +6,46 @@ class BasicSprite(pg.sprite.Sprite):
 		pg.sprite.Sprite.__init__(self)
 		self.image = image
 		self.rect = self.image.get_rect(x=pos[0], y=pos[1])
-	def move(self,pos):
+	def moveC(self,pos):
 		self.rect.center = pos
+	def move(self,pos):
+		self.rect.topleft = pos
+	def draw(self,screen):
+		screen.blit(self.image, self.rect)
 
 class SpriteWithTL(BasicSprite):
-	def __init__(self, A, B, onDone, duration=translationTime):
-		# print('Nouvelle anim')
-		self.screen = screen
-		self.image = image
-		self.A = A
-		self.B = B
-		self.speedVector = ((B[0]-A[0])/duration, (B[1]-A[1])/duration)
-		self.currentPos = self.A
+	# tell the sprite to start moving to dest = (x,y)
+	# when dest is reached, execute onDone.
+	def animate(self, dest, onDone, duration=translationTime):
+		start = self.rect.topleft
+		self.speedVector = ((dest[0]-start[0])/duration, (dest[1]-start[1])/duration)
 		self.duration = duration
 		self.lastFrameTime = None
 		self.elapsedTime = 0
 		self.done = False
 		self.onDone = onDone
+	def resetAnimation(self):
+		self.lastFrameTime = None
+		self.speedVector = (0,0)
+		self.elapsedTime = 0
+		self.done = True
+		self.onDone = None
+	def update(self):
+		if not self.done:
+			# print('elapsedTime: ', self.elapsedTime)
+			if self.lastFrameTime == None: # premier draw
+				self.lastFrameTime = time.time()
+			else:
+				now = time.time()
+				dt = now - self.lastFrameTime
+				self.lastFrameTime = now
+				self.elapsedTime += dt
+				(dx, dy) = (self.speedVector[0]*dt, self.speedVector[1]*dt)
+				self.rect.topleft = (self.rect.left + dx, self.rect.top + dy)
+				if self.elapsedTime >= self.duration:
+					if self.onDone != None:
+						self.onDone()
+					self.resetAnimation()
 
 class HighLightRect(pg.sprite.Sprite):
 	def __init__(self,color,width,height,layer=1,pos=(0,0)):

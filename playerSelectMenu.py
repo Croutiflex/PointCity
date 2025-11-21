@@ -18,7 +18,7 @@ class PlayerSelectMenu:
 		for i in range(6):
 			self.avatars.add(AvatarSelect(i+6, ((1+i)*screenSize[0]/7, screenSize[1]*3/4)))
 
-		self.HL = HighLightRect(white, avatarSize2[0]+2*space1, avatarSize2[1]+2*space1, 0,0)
+		self.HL = HighLightRect(white, avatarSize2[0]+2*space1, avatarSize2[1]+2*space1, 0)
 		self.drawables = pg.sprite.LayeredUpdates(self.avatars.sprites())
 		self.drawables.add(self.closeButton)
 		self.BGColor = playerColors[self.choosingPlayer]
