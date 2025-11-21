@@ -24,36 +24,15 @@ class PointCityMarket:
 				x += cardSize[0][0] + space2
 			y += cardSize[0][1] + space2
 		self.drawables = pg.sprite.LayeredUpdates(self.cards)
-		self.blueHL = HighLightRect(blue, w, h)
+		self.blueHL = HighLightRect(blue, w, h, layer=-2)
 		self.whiteHL = HighLightRect(white, w, h)
 		if modeSolo:
 			self.automaCards = [4, 8]
 			self.automaHL = [HighLightRect(orange, w, h, layer=-1) for i in range(2)]
 			self.drawables.add(self.automaHL)
 
-		self.greenHL = pg.sprite.RenderPlain()
-
-	def update(self):
-		if self.gamePhase == GPhase.MARKET:
-			i = self.findCard(pg.mouse.get_pos())
-			if i == -1:
-				self.drawables.remove(self.whiteHL)
-			elif len(self.selectedCards) == 1:
-				if i in self.adjCards:
-					self.whiteHL.move(self.cards[i].rect.center)
-					self.drawables.add(self.whiteHL)
-				else:
-					self.drawables.remove(self.whiteHL)
-			else:
-				self.whiteHL.move(self.cards[i].rect.center)
-				self.drawables.add(self.whiteHL)
-		elif self.gamePhase == GPhase.DISCOVER:
-			i = self.findCard(pg.mouse.get_pos())
-			if i == -1:
-				self.drawables.remove(self.whiteHL)
-			else:
-				self.whiteHL.move(self.cards[i].rect.center)
-				self.drawables.add(self.whiteHL)
+		self.greenHL = pg.sprite.RenderPlain(self.cards)
+		self.updateFlip()
 
 	def goToNewTurn(self):
 		if self.modeSolo:
@@ -94,6 +73,7 @@ class PointCityMarket:
 		if i == -1:
 			return False
 		if self.cards[i].flip():
+			self.gamePhase = GPhase.MARKET
 			return True
 		return False
 
@@ -104,7 +84,7 @@ class PointCityMarket:
 			return
 		if len(self.selectedCards) == 0:
 			self.selectedCards.append(self.cards[i])
-			self.blueHL.move(self.cards[i].rect.center)
+			self.blueHL.moveC(self.cards[i].rect.center)
 			self.drawables.add(self.blueHL)
 			self.adjCards = self.findAdjacent(i)
 		elif len(self.selectedCards) == 1:
@@ -143,6 +123,7 @@ class PointCityMarket:
 			for k in range(4):
 			 	self.cards[k//4 + j].canFlip = v or self.cards[k//4 + j].canFlip
 		# update green HL
+		self.greenHL.empty()
 		for c in self.cards:
 			if c.canFlip:
 				self.greenHL.add(HighLightRect(green, w, h, layer=0,pos=c.rect.center))
@@ -166,7 +147,29 @@ class PointCityMarket:
 			else:
 				i += 5
 			self.automaCards.append(i)
-			self.automaHL[x].move(cards[i].rect.center)
+			self.automaHL[x].moveC(cards[i].rect.center)
+
+	def update(self):
+		if self.gamePhase == GPhase.MARKET:
+			i = self.findCard(pg.mouse.get_pos())
+			if i == -1:
+				self.drawables.remove(self.whiteHL)
+			elif len(self.selectedCards) == 1:
+				if i in self.adjCards:
+					self.whiteHL.moveC(self.cards[i].rect.center)
+					self.drawables.add(self.whiteHL)
+				else:
+					self.drawables.remove(self.whiteHL)
+			else:
+				self.whiteHL.moveC(self.cards[i].rect.center)
+				self.drawables.add(self.whiteHL)
+		elif self.gamePhase == GPhase.DISCOVER:
+			i = self.findCard(pg.mouse.get_pos())
+			if i == -1:
+				self.drawables.remove(self.whiteHL)
+			else:
+				self.whiteHL.moveC(self.cards[i].rect.center)
+				self.drawables.add(self.whiteHL)
 
 	def draw(self, screen):
 		if self.gamePhase == GPhase.DISCOVER:

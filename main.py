@@ -31,7 +31,6 @@ def main():
 
 	# frame loop
 	while running:
-		mousePos = pg.mouse.get_pos()
 		# keys = pg.key.get_pressed()
 		events = {}
 		for event in pg.event.get():
@@ -80,30 +79,29 @@ def main():
 					startMenu.cheatOrNotCheat()
 
 			case "MAINMENU":
-				PCGame.drawBase()
+				PCGame.draw(screen)
 				MainMenu.draw()
 				if "leftClick" in events:
 					if MainMenu.leftClick():
 						PCGame.saveGame(MainMenu.slot)
 					if not MainMenu.isActive:
 						state = "GAME"
-						PCGame.drawBase()
 				if "escape" in events:
 					if MainMenu.retour():
 						state = "GAME"
 						MainMenu.isActive = False
-						PCGame.drawBase()
 				if MainMenu.redrawGame:
-					PCGame.drawBase()
+					PCGame.draw(screen)
 					MainMenu.redrawGame = False
 
 			case "GAME":
-				PCGame.draw()
+				PCGame.update()
+				PCGame.draw(screen)
 				if PCGame.over:
 					EndScreen = PCGame.computeScores()
 					state = "SCORES"
 				if "leftClick" in events:
-					PCGame.leftClick(mousePos)
+					PCGame.leftClick()
 				if "rightClick" in events:
 					PCGame.rightClick()
 				if "escape" in events:

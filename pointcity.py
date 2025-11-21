@@ -26,8 +26,6 @@ class PointCityGame:
 		self.playerInventory = []
 		self.over = False
 		self.piocheText = pg.font.Font('freesansbold.ttf', fontsize1)
-		(x,y) = piochePos
-		self.piocheRect = pg.Rect(x-space1, y-space1, 2*space1+cardSize[0][0], 2*space1+cardSize[0][1])
 
 		# lecture du détail des cartes & jetons
 		tier1cards = []
@@ -136,7 +134,6 @@ class PointCityGame:
 			# for p in self.playerInventory:
 			# 	print("Joueur ", p.Id+1, ", prod:", p.production)
 			self.market = PointCityMarket(screen, marketCards, self.modeSolo)
-			self.market.updateFlip()
 			if self.modeSolo:
 				x = sum(matos2[:3]) - len(self.pioche) - 16 # nombre de cartes jouées
 				for i in range((x//4)%4):
@@ -172,9 +169,11 @@ class PointCityGame:
 			random.shuffle(allTokens)
 			self.tokenMarket = PointCityTokenMarket(screen, allTokens[:gameMatos[3]], self.modeSolo)
 
+		self.piocheHL = HighLightRect(white, cardSize[0][0]+2*space1, cardSize[0][1]+2*space1, pos=self.pioche[0].rect.center)
+		self.piocheGroup = pg.sprite.LayeredUpdates(self.pioche[0])
+		self.isMouseOnPioche = False
 		self.turnsLeft = 1 + int(len(self.pioche)/2)
 		self.turn = 0 # à changer
-		self.drawBase()
 
 	# sauvegarde la partie dans un fichier texte
 	# slot à préciser, si le slot n'est pas vide il sera écrasé
@@ -220,10 +219,19 @@ class PointCityGame:
 		f.close()
 		print("Partie sauvegardée! (", slot,")")
 
+	def piocher(self):
+		card = self.pioche[0]
+		self.piocheGroup.remove(card)
+		self.pioche = self.pioche[1:]
+		if self.pioche:
+			self.piocheGroup.add(self.pioche[0])
+		return card
+
 	def pressTab(self): # obsolete
 		self.saveGame(self.nPlayers)
 
-	def leftClick(self, mousePos):
+	def leftClick(self):
+		mousePos = pg.mouse.get_pos()
 		if self.over:
 			return
 		if self.isAnimating(): # clic ignoré si animation en cours
@@ -235,7 +243,7 @@ class PointCityGame:
 				if self.market.flipCard(mousePos):
 					self.gamePhase = GPhase.MARKET
 			case GPhase.MARKET:
-				if self.piocheRect.collidepoint(mousePos) and len(self.market.selectedCards) == 0: # pioche directe
+				if self.isMouseOnPioche and len(self.market.selectedCards) == 0: # pioche directe
 					self.directDraw()
 					return
 				self.playerInventory[self.currentPlayer].selectHandCard(mousePos)
@@ -260,24 +268,18 @@ class PointCityGame:
 					# self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f))
 
 	def directDraw(self):
-		if len(self.pioche) == 0:
-			self.screen.fill(red, self.piocheRect)
-			return
-		card1 = self.pioche[0]
-		self.pioche = self.pioche[1:]
-		card1.resize(2)
+		card1 = self.piocher()
 		card2 = self.pioche[0]
 		# print("pioche cartes ", card1.Id, " et ", card2.Id)
 		def f2():
 			self.playerInventory[self.currentPlayer].addCard(card2)
 			self.endTurn()
 		def f1():
-			card2.resize(2)
-			self.pioche = self.pioche[1:]
 			self.playerInventory[self.currentPlayer].addCard(card1)
-			card2.animate(handPosL, f2)
+			self.piocher()
+			card2.animate(handPosL, resize=cardH2/cardH, onDone=f2)
 			self.movingCards.add(card2)
-		card1.animate(handPosL, f1)
+		card1.animate(handPosL, resize=cardH2/cardH, onDone=f1)
 		self.movingCards.add(card1)
 
 	# Check si l'achat est possible.
@@ -504,11 +506,9 @@ class PointCityGame:
 	def closePopups(self):
 		if self.lastTurnPopup.on: # fermeture popup dernier tour
 			self.lastTurnPopup.on = False
-			self.drawBase()
 			return True
 		if self.newTurnPopup.on: # fermeture popup tour suivant
 			self.newTurnPopup.on = False
-			self.drawBase()
 			if self.modeSolo and self.currentPlayer == 1: # tour de l'automa
 				self.playAutomaTurn()
 			return True
@@ -608,7 +608,6 @@ class PointCityGame:
 		print("Joueur ", str(self.currentPlayer + 1))
 		for p in self.playerInventory:
 			p.endTurn(self.nPlayers)
-		self.market.updateFlip()
 		if self.market.canFlip():
 			self.gamePhase = GPhase.DISCOVER
 		else:
@@ -634,7 +633,10 @@ class PointCityGame:
 		return len(self.movingCards) > 0
 
 	def update(self):
+		# marché
 		self.market.update()
+		# pioche
+		self.isMouseOnPioche = len(self.pioche) > 0 and self.pioche[0].rect.collidepoint(pg.mouse.get_pos())
 		#animations
 		if self.movingCards:
 			self.movingCards.update()
@@ -644,22 +646,26 @@ class PointCityGame:
 			if not self.movingCards and len(self.TLQueue) > 0:
 				self.movingCards.add(self.TLQueue.pop(0))
 
-	def drawBase(self):
-		self.screen.fill(backgroundColor)
+	def draw(self, screen):
+		screen.fill(backgroundColor)
 		# marché
-		self.market.draw(self.screen)
+		self.market.draw(screen)
 		# pioche
-		if len(self.pioche) > 0:
-			self.pioche[0].draw(self.screen)
+		if self.isMouseOnPioche and self.gamePhase == GPhase.MARKET and len(self.market.selectedCards) == 0:
+			self.piocheHL.draw(screen)
+		if self.pioche:
+			self.pioche[0].draw(screen)
 		pText = self.piocheText.render(str(len(self.pioche)), True, textColor, backgroundColor)
-		self.screen.blit(pText, pText.get_rect().move(piocheTextPos))
+		screen.blit(pText, pText.get_rect().move(piocheTextPos))
 		# jetons
-		self.tokenMarket.draw(self.screen)
+		self.tokenMarket.draw(screen)
 		# joueurs
 		for p in self.playerInventory:
-			p.draw(self.screen)
+			p.draw(screen)
+		# cartes en transition
+		self.movingCards.draw(screen)
 
-	def draw(self):
+	def draw2(self):
 		if self.turnsLeft == 0 and not self.isAnimating(): # fin de partie à la fin des animations
 			self.over = True
 			return
@@ -671,12 +677,6 @@ class PointCityGame:
 		self.tokenMarket.draw(self.screen, self.gamePhase == GPhase.TOKEN)
 		for p in self.playerInventory:
 			p.draw(self.screen, self.gamePhase == GPhase.MARKET)
-
-		# pioche
-		if self.gamePhase == GPhase.MARKET and self.piocheRect.collidepoint(pg.mouse.get_pos()) and len(self.market.selectedCards) == 0:
-			self.screen.fill(white, self.piocheRect)
-		else:
-			self.screen.fill(backgroundColor, self.piocheRect)
 
 		if len(self.pioche) > 0:
 			self.pioche[0].draw(self.screen)

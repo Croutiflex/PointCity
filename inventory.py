@@ -36,10 +36,8 @@ class PointCityPlayerInventory:
 
 		# self.surface = screen.subsurface(PIRect[0])
 		self.mouseWasOnHand = False
-		self.hasRecentlyChanged = True
 
 	def addInge(self):
-		self.hasRecentlyChanged = True
 		card = PointCityCard(0, INGENIEUR, 'ressource', None, 0, -1)
 		card.resize(self.getSize()-1)
 		self.addCard(card)
@@ -88,7 +86,6 @@ class PointCityPlayerInventory:
 		return total
 
 	def endTurn(self, n):
-		self.hasRecentlyChanged = True
 		p = self.pos - 1
 		self.pos = p if p >= 0 else n-1
 		# print("Joueur ", self.Id, " passe en pos : ", self.pos)
@@ -96,7 +93,7 @@ class PointCityPlayerInventory:
 		self.resetSelection()
 
 	def getSize(self):
-		return 2 if self.pos == 0 else 3
+		return 1 if self.pos == 0 else 2
 
 	def resize(self):
 		size = self.getSize()
@@ -107,7 +104,6 @@ class PointCityPlayerInventory:
 			c.resize(size)
 
 	def resetSelection(self):
-		self.hasRecentlyChanged = True
 		self.selectedCards = []
 		self.updateHandPos()
 
@@ -118,7 +114,6 @@ class PointCityPlayerInventory:
 			pos = self.handPosL[-i]
 			rect = pg.Rect(pos, cardSize[0][1])
 			if rect.collidepoint(mousePos):
-				self.hasRecentlyChanged = True
 				if pos[1] < handPosL[1]: # si la carte est déjà sélectionnée
 					self.handPosL[-i] = (pos[0], handPosL[1])
 					if self.resCards[-i] not in self.selectedCards:
@@ -131,11 +126,9 @@ class PointCityPlayerInventory:
 				return
 
 	def addToken(self, token):
-		self.hasRecentlyChanged = True
 		self.tokens.append(token)
 
 	def updateTokenPos(self, gameLoad = False):
-		self.hasRecentlyChanged = True
 		# détaillé
 		L = len(self.tokens)
 		if not gameLoad:
@@ -185,7 +178,6 @@ class PointCityPlayerInventory:
 
 	def addCard(self, card):
 		# print("carte ", card.Id, " pour joueur ", self.Id)
-		self.hasRecentlyChanged = True
 		if card.side == RESSOURCE:
 			self.addResCard(card)
 		else:

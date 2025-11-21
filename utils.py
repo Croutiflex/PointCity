@@ -1,11 +1,13 @@
 import pygame as pg
+import time
 from params import *
 
 class BasicSprite(pg.sprite.Sprite):
-	def __init__(self,image,layer=1,pos=(0,0)):
+	def __init__(self,image,layer=0,pos=(0,0)):
 		pg.sprite.Sprite.__init__(self)
 		self.image = image
 		self.rect = self.image.get_rect(x=pos[0], y=pos[1])
+		self._layer = layer
 	def moveC(self,pos):
 		self.rect.center = pos
 	def move(self,pos):
@@ -13,12 +15,26 @@ class BasicSprite(pg.sprite.Sprite):
 	def draw(self,screen):
 		screen.blit(self.image, self.rect)
 
+class HighLightRect(BasicSprite):
+	def __init__(self,color,width,height,layer=-1,pos=(0,0)):
+		super().__init__(pg.Surface([width, height]), layer)
+		self.image.fill(color)
+		self.moveC(pos)
+	def set_color(self,color):
+		self.image.fill(color)
+
 class SpriteWithTL(BasicSprite):
 	# tell the sprite to start moving to dest = (x,y)
+	# the sprite will also shrink or grow depending on the inflate value.
 	# when dest is reached, execute onDone.
-	def animate(self, dest, onDone, duration=translationTime):
+	def animate(self, dest, onDone=None, resize=1, duration=translationTime):
 		start = self.rect.topleft
 		self.speedVector = ((dest[0]-start[0])/duration, (dest[1]-start[1])/duration)
+		if resize != 1:
+			self.resizing = True
+			self.resizeSpeed = (resize-1)/duration
+			self.currentInflation = 1
+			self.baseImg = self.image
 		self.duration = duration
 		self.lastFrameTime = None
 		self.elapsedTime = 0
@@ -40,24 +56,18 @@ class SpriteWithTL(BasicSprite):
 				dt = now - self.lastFrameTime
 				self.lastFrameTime = now
 				self.elapsedTime += dt
+				if self.resizing:
+					self.currentInflation += self.resizeSpeed*dt
+					self.image = pg.transform.smoothscale_by(self.baseImg, self.currentInflation)
+					pos = self.rect.topleft
+					self.rect.scale_by_ip(self.currentInflation)
+					self.rect.topleft = pos
 				(dx, dy) = (self.speedVector[0]*dt, self.speedVector[1]*dt)
 				self.rect.topleft = (self.rect.left + dx, self.rect.top + dy)
 				if self.elapsedTime >= self.duration:
 					if self.onDone != None:
 						self.onDone()
 					self.resetAnimation()
-
-class HighLightRect(pg.sprite.Sprite):
-	def __init__(self,color,width,height,layer=1,pos=(0,0)):
-		pg.sprite.Sprite.__init__(self)
-		self.image = pg.Surface([width, height])
-		self.image.fill(color)
-		self.rect = self.image.get_rect(centerx=pos[0], centery=pos[1])
-		self.layer = 1
-	def set_color(self,color):
-		self.image.fill(color)
-	def move(self,pos):
-		self.rect.center = pos
 
 # bouton avec 2 images (survolé ou pas)
 class Button(pg.sprite.Sprite):
