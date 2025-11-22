@@ -414,57 +414,61 @@ class PointCityGame:
 				self.market.failedBuy()
 				return
 
-		# animations marché vers joueur
-		def f1():
-			self.playerInventory[self.currentPlayer].addCard(selectedCards[0])
-		def f2():
-			self.playerInventory[self.currentPlayer].addCard(selectedCards[1])
+		marketCardPos = [c.rect.topleft for c in selectedCards]
+		newcards = self.pioche[:2]
 
+		def f1(): # fin animation 1re carte marché
+			self.playerInventory[self.currentPlayer].addCard(selectedCards[0])
+
+		def f4(): # fin animation 2e carte pioche
+			newcards[1].move(marketCardPos[1])
+			self.market.addCard(newcards[1])
+			if municipalDrawn > 0:
+				self.tokensLeft = municipalDrawn
+				self.gamePhase = GPhase.TOKEN
+			else:
+				self.endTurn()
+
+		def f3(): # fin animation 1re carte pioche
+			newcards[0].move(marketCardPos[0])
+			self.market.addCard(newcards[0])
+			self.piocher()
+			if selectedCards[1].side == RESSOURCE:
+				newcards[1].flip()
+			newcards[1].animate(marketCardPos[1], onDone=f4)
+			self.movingCards.add(newcards[1])
+
+		def f2(): # fin animation 2e carte marché
+			self.playerInventory[self.currentPlayer].addCard(selectedCards[1])
+			if self.turnsLeft == 1: # si c'est le dernier tour
+				if municipalDrawn > 0:
+					self.tokensLeft = municipalDrawn
+					self.gamePhase = GPhase.TOKEN
+				else:
+					self.endTurn()
+			else:
+				self.piocher()
+				if selectedCards[0].side == RESSOURCE:
+					newcards[0].flip()
+				newcards[0].animate(marketCardPos[0], onDone=f3)
+				self.movingCards.add(newcards[0])
+
+		self.market.endMarketPhase()
+		i = 0
 		for c in selectedCards:
-			if c.side == RESSOURCE:
-				if not batDrawn or marketResUsed == None: # si la carte du marché n'a pas été utilisée pour l'achat
-					pass
-					# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
+			f = f1 if i == 0 else f2
+			if c.side == RESSOURCE: # si carte ressource du marché non utilisée pour l'achat
+				if marketResUsed == None or marketResUsed != c: 
+					c.animate(handPosL, resize=cardH2/cardH, onDone=f)
 			else:
 				pos = muniPosL
-				if card1.type == "ressource":
-					pos = cityPosL[card1.ressource]
-				elif card1.type == "points":
+				if c.type == "ressource":
+					pos = cityPosL[c.ressource]
+				elif c.type == "points":
 					pos = pointsPosL
-				# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
-
-		self.market.cards[i][j] = None
-		self.market.cards[k][l] = None
-
-		if self.turnsLeft == 1: # si c'est le dernier tour
-			if municipalDrawn > 0:
-				self.tokensLeft = municipalDrawn
-				self.gamePhase = GPhase.TOKEN
-			else:
-				self.endTurn()
-			return
-
-		# animations pioche vers marché
-		newcard1 = self.pioche[0]
-		newcard2 = self.pioche[1]
-		if card1.side == RESSOURCE:
-			newcard1.flip()
-		if card2.side == RESSOURCE:
-			newcard2.flip()
-
-		def f3():
-			self.market.cards[i][j] = newcard1
-			self.pioche = self.pioche[1:]
-		def f4():
-			self.market.cards[k][l] = newcard2
-			if municipalDrawn > 0:
-				self.tokensLeft = municipalDrawn
-				self.gamePhase = GPhase.TOKEN
-			else:
-				self.endTurn()
-		
-		# self.translationsPM.append(translation(self.screen, newcard1.getImage(), piochePos, self.market.cardPos[i][j], f3))
-		# self.translationsPM.append(translation(self.screen, newcard2.getImage(), piochePos, self.market.cardPos[k][l], f4))
+				c.animate(pos, resize=cardH3/cardH, onDone=f)
+			self.movingCards.add(c)
+			i += 1
 
 	def rightClick(self):
 		if self.closePopups():

@@ -35,6 +35,8 @@ class SpriteWithTL(BasicSprite):
 			self.resizeSpeed = (resize-1)/duration
 			self.currentInflation = 1
 			self.baseImg = self.image
+		else:
+			self.resizing = False
 		self.duration = duration
 		self.lastFrameTime = None
 		self.elapsedTime = 0

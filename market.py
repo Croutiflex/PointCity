@@ -48,10 +48,10 @@ class PointCityMarket:
 			self.gamePhase = GPhase.MARKET
 
 	def endMarketPhase(self):
-		self.selectedCards = []
+		self.drawables.remove([self.cards[i] for i in self.selectedCards])
 		self.adjCards = []
 		self.drawables.remove(self.whiteHL)
-		self.drawables.remove(self.automaHL)
+		# self.drawables.remove(self.automaHL)
 		self.drawables.remove(self.blueHL)
 
 	# si la souris est sur une carte, renvoie sa position. sinon -1.
@@ -108,6 +108,10 @@ class PointCityMarket:
 			self.drawables.remove(self.blueHL)
 			self.selectedCards = []
 			self.adjCards = []
+
+	def addCard(self, card):
+		self.cards[self.selectedCards.pop(0)] = card
+		self.drawables.add(card)
 
 	def updateFlip(self):
 		# horizontally
