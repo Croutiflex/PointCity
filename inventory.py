@@ -108,13 +108,13 @@ class PointCityPlayerInventory:
 		self.selectedCards = []
 		self.updateHandPos()
 
-	def selectHandCard(self, mousePos):
+	def selectHandCard(self):
 		if not self.mouseWasOnHand:
 			return
 		for i in range(1, len(self.resCards)+1):
 			pos = self.handPosL[-i]
 			rect = pg.Rect(pos, cardSize[0][1])
-			if rect.collidepoint(mousePos):
+			if rect.collidepoint(pg.mouse.get_pos()):
 				if pos[1] < handPosL[1]: # si la carte est déjà sélectionnée
 					self.handPosL[-i] = (pos[0], handPosL[1])
 					if self.resCards[-i] not in self.selectedCards:

@@ -136,6 +136,7 @@ popUpPos = (screenSize[0]/2, screenSize[1]/2)
 pauseTime1 = 1500
 translationTime = 0.5
 translationTime2 = 2
+failedBuyIndicationTime = 2
 
 ## COLORS
 menuBackgroundColor = pg.Color(122, 183, 191, 255)

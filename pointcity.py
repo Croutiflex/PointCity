@@ -4,7 +4,6 @@ from params import *
 from tokenMarket import *
 from baseObjects import *
 from market import *
-from animations import *
 from inventory import *
 from popup import *
 from endScreen import *
@@ -231,7 +230,6 @@ class PointCityGame:
 		self.saveGame(self.nPlayers)
 
 	def leftClick(self):
-		mousePos = pg.mouse.get_pos()
 		if self.over:
 			return
 		if self.isAnimating(): # clic ignoré si animation en cours
@@ -240,23 +238,21 @@ class PointCityGame:
 			return
 		match self.gamePhase:
 			case GPhase.DISCOVER:
-				if self.market.flipCard(mousePos):
+				if self.market.flipCard():
 					self.gamePhase = GPhase.MARKET
 			case GPhase.MARKET:
 				if self.isMouseOnPioche and len(self.market.selectedCards) == 0: # pioche directe
 					self.directDraw()
 					return
-				self.playerInventory[self.currentPlayer].selectHandCard(mousePos)
-				selcards = self.market.selectCard(mousePos)
-				if len(selcards) == 2: # sélection marché
-					self.drawFromMarket(selcards)
-					
+				self.playerInventory[self.currentPlayer].selectHandCard()
+				if self.market.selectCard(): # sélection marché
+					self.drawFromMarket()
 			case GPhase.TOKEN:
 				if len(self.tokenMarket.tokens) == 0:
 					self.endTurn()
 					return
-				tk = self.tokenMarket.getToken(mousePos)
-				tkpos = self.tokenMarket.findToken(mousePos)
+				tk = self.tokenMarket.getToken()
+				tkpos = self.tokenMarket.findToken()
 				if tk != None:
 					tk.resize(2)
 					def f():
@@ -399,65 +395,43 @@ class PointCityGame:
 				self.playerInventory[self.currentPlayer].resCards.remove(c)
 		self.playerInventory[self.currentPlayer].resetSelection()
 
-	def drawFromMarket(self, selcards):
-		selcards.sort(key = lambda c : 4*c[0] + c[1])
-		(i,j) = selcards[0]
-		(k,l) = selcards[1]
-		card1 = self.market.cards[i][j]
-		card2 = self.market.cards[k][l]
+	def drawFromMarket(self):
+		selectedCards = self.market.getSelectedCards()
 		municipalDrawn = 0
-		batDrawn = 0
-		if card1.side == BATIMENT:
-			batDrawn += 1
-			if card1.type == "municipal":
-				municipalDrawn += 1
-		if card2.side == BATIMENT:
-			batDrawn += 1
-			if card2.type == "municipal":
-				municipalDrawn += 1
+		batDrawn = False
+		for c in selectedCards:
+			if c.side == BATIMENT:
+				batDrawn = True
+				if c.type == "municipal":
+					municipalDrawn += 1
 
-		if batDrawn > 0:
-			(payOK, costLeft, marketResUsed) = self.checkPayment([card1, card2])
+		if batDrawn:
+			(payOK, costLeft, marketResUsed) = self.checkPayment(selectedCards)
 			# print("checkPayment; ", payOK, costLeft, marketResUsed)
 			if payOK: 															# si achat possible
 				self.makePayment(costLeft, marketResUsed)
 			else:
-				self.market.drawSingleCard((i,j), red)
-				self.market.drawSingleCard((k,l), red)
+				self.market.failedBuy()
 				return
 
-		card1.resize(2)
-		card2.resize(2)
-
-		def f1():
-			self.playerInventory[self.currentPlayer].addCard(card1)
-		def f2():
-			self.playerInventory[self.currentPlayer].addCard(card2)
-
 		# animations marché vers joueur
-		if card1.side == RESSOURCE:
-			if batDrawn == 0 or marketResUsed == None: # si la carte du marché n'a pas été utilisée pour l'achat
-				pass
-				# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
-		else:
-			pos = muniPosL
-			if card1.type == "ressource":
-				pos = cityPosL[card1.ressource]
-			elif card1.type == "points":
-				pos = pointsPosL
-			# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
+		def f1():
+			self.playerInventory[self.currentPlayer].addCard(selectedCards[0])
+		def f2():
+			self.playerInventory[self.currentPlayer].addCard(selectedCards[1])
 
-		if card2.side == RESSOURCE:
-			if batDrawn == 0 or marketResUsed == None: # si la carte n'a pas été utilisée pour l'achat
-				pass
-				# self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], handPosL, f2))
-		else:
-			pos = muniPosL
-			if card2.type == "ressource":
-				pos = cityPosL[card2.ressource]
-			if card2.type == "points":
-				pos = pointsPosL
-			# self.translationsMJ.append(translation(self.screen, card2.getImage(), self.market.cardPos[k][l], pos, f2))
+		for c in selectedCards:
+			if c.side == RESSOURCE:
+				if not batDrawn or marketResUsed == None: # si la carte du marché n'a pas été utilisée pour l'achat
+					pass
+					# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], handPosL, f1))
+			else:
+				pos = muniPosL
+				if card1.type == "ressource":
+					pos = cityPosL[card1.ressource]
+				elif card1.type == "points":
+					pos = pointsPosL
+				# self.translationsMJ.append(translation(self.screen, card1.getImage(), self.market.cardPos[i][j], pos, f1))
 
 		self.market.cards[i][j] = None
 		self.market.cards[k][l] = None

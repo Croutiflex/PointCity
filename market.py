@@ -1,6 +1,7 @@
 import pygame as pg
 from params import *
 from utils import *
+import time
 
 w, h = 2*space1+cardSize[0][0], 2*space1+cardSize[0][1]
 # card positions :
@@ -26,6 +27,9 @@ class PointCityMarket:
 		self.drawables = pg.sprite.LayeredUpdates(self.cards)
 		self.blueHL = HighLightRect(blue, w, h, layer=-2)
 		self.whiteHL = HighLightRect(white, w, h)
+		self.redHL = [HighLightRect(red, w, h), HighLightRect(red, w, h)]
+		self.redHLTimer = 0
+		self.lastFrameTime = None
 		if modeSolo:
 			self.automaCards = [4, 8]
 			self.automaHL = [HighLightRect(orange, w, h, layer=-1) for i in range(2)]
@@ -44,14 +48,16 @@ class PointCityMarket:
 			self.gamePhase = GPhase.MARKET
 
 	def endMarketPhase(self):
+		self.selectedCards = []
+		self.adjCards = []
 		self.drawables.remove(self.whiteHL)
 		self.drawables.remove(self.automaHL)
 		self.drawables.remove(self.blueHL)
 
-	# si la souris est sur une carte, renvoie ses coordonnées. sinon -1.
-	def findCard(self, mousePos):
+	# si la souris est sur une carte, renvoie sa position. sinon -1.
+	def findCard(self):
 		for i in range(16):
-			if self.cards[i].rect.collidepoint(mousePos):
+			if self.cards[i].rect.collidepoint(pg.mouse.get_pos()):
 				return i
 		return -1
 
@@ -68,8 +74,8 @@ class PointCityMarket:
 		return ret
 
 	# renvoie True si une carte a été retournée, false sinon
-	def flipCard(self, mousePos):
-		i = self.findCard(mousePos)
+	def flipCard(self):
+		i = self.findCard()
 		if i == -1:
 			return False
 		if self.cards[i].flip():
@@ -77,25 +83,25 @@ class PointCityMarket:
 			return True
 		return False
 
-	# renvoie la liste des cartes sélectionnées
-	def selectCard(self, mousePos):
-		i = self.findCard(mousePos)
+	# renvoie True si on sélectionne la 2e carte
+	def selectCard(self):
+		i = self.findCard()
 		if i == -1:
-			return
-		if len(self.selectedCards) == 0:
-			self.selectedCards.append(self.cards[i])
+			return False
+		self.selectedCards.append(i)
+		if len(self.selectedCards) == 1: # sélection première carte
 			self.blueHL.moveC(self.cards[i].rect.center)
 			self.drawables.add(self.blueHL)
 			self.adjCards = self.findAdjacent(i)
-		elif len(self.selectedCards) == 1:
+			return False
+		elif len(self.selectedCards) == 2: # sélection 2e carte
 			if i in self.adjCards:
-				self.adjCards = []
-				L = self.selectedCards
-				L.append(self.cards[i])
-				self.selectedCards = []
 				self.drawables.remove(self.blueHL)
-				return L
-		return self.selectedCards
+				self.selectedCards.sort()
+				return True
+
+	def getSelectedCards(self):
+		return [self.cards[i] for i in self.selectedCards]
 
 	def cancelSelect(self):
 		if len(self.selectedCards) > 0:
@@ -149,9 +155,26 @@ class PointCityMarket:
 			self.automaCards.append(i)
 			self.automaHL[x].moveC(cards[i].rect.center)
 
+	def failedBuy(self):
+		i = 0
+		for j in self.selectedCards:
+			self.redHL[i].moveC(self.cards[j].rect.center)
+			i += 1
+		self.drawables.add(self.redHL)
+		self.selectedCards = []
+		self.redHLTimer = failedBuyIndicationTime
+		self.lastFrameTime = time.time()
+
 	def update(self):
 		if self.gamePhase == GPhase.MARKET:
-			i = self.findCard(pg.mouse.get_pos())
+			if self.redHLTimer > 0:
+				now = time.time()
+				dt = now - self.lastFrameTime
+				self.lastFrameTime = now
+				self.redHLTimer -= dt
+				if self.redHLTimer <= 0:
+					self.drawables.remove(self.redHL)
+			i = self.findCard()
 			if i == -1:
 				self.drawables.remove(self.whiteHL)
 			elif len(self.selectedCards) == 1:
@@ -164,7 +187,7 @@ class PointCityMarket:
 				self.whiteHL.moveC(self.cards[i].rect.center)
 				self.drawables.add(self.whiteHL)
 		elif self.gamePhase == GPhase.DISCOVER:
-			i = self.findCard(pg.mouse.get_pos())
+			i = self.findCard()
 			if i == -1:
 				self.drawables.remove(self.whiteHL)
 			else:
