@@ -39,8 +39,9 @@ class PointCityPlayerInventory:
 
 	def addInge(self):
 		card = PointCityCard(0, INGENIEUR, 'ressource', None, 0, -1)
-		card.resize(self.getSize()-1)
-		self.addCard(card)
+		card.move(handPosL)
+		card.resize(self.getSize())
+		self.addResCard(card)
 
 	def computeScore(self):
 		total = self.score

@@ -19,28 +19,31 @@ class PointCityCard(SpriteWithTL):
 		self.imageRes = ImgRes[ressource] if tier == 0 else ImgRes2[ressource]
 		file = "res/batiments/"+str(Id)+".png"
 		if os.path.exists(file):
-			self.imageBat = pg.transform.smoothscale(pg.image.load(file), cardSize[0])
+			self.imageBat = pg.image.load(file)
 		else:
-			self.imageBat = pg.transform.smoothscale(pg.image.load("res/batiments/dummy.png"), cardSize[0])
+			self.imageBat = pg.image.load("res/batiments/dummy.png")
 		self.side = RESSOURCE
 		self.canFlip = True
-		self.image = self.imageRes
+		self.image = pg.transform.smoothscale(self.imageRes, cardSize[0])
 		self.rect = self.image.get_rect(x=pos[0], y=pos[1])
 
 	def __str__(self):
 		return str(self.ressource)
 
+	def getBaseImg(self):
+		return self.imageRes if self.side == RESSOURCE else self.imageBat
+
 	# renvoie True si la carte a été retournée, false sinon
 	def flip(self):
 		if self.canFlip:
 			self.side = BATIMENT
-			self.image = self.imageBat
+			self.image = pg.transform.smoothscale(self.imageBat, cardSize[0])
 			return True
 		return False
 
 	def resize(self, size):
 		self.size = size
-		self.image = pg.transform.smoothscale(self.image, cardSize[size])
+		self.image = pg.transform.smoothscale(self.getBaseImg(), cardSize[size])
 		self.rect = self.image.get_rect(x = self.rect.x, y = self.rect.y)
 
 class PointCityToken(SpriteWithTL):
