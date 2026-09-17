@@ -63,8 +63,6 @@ space3 = 25
 cardRatio = 0.66 # H/L
 fontsize1 = 30
 fontsize2 = 50
-font1 = pg.font.Font('freesansbold.ttf', fontsize1)
-font2 = pg.font.Font('freesansbold.ttf', fontsize2)
 maxFramerate = 60
 
 # adaptables
@@ -155,25 +153,13 @@ dummyImage = pg.image.load("res/batiments/dummy.png")
 cursorImg = pg.transform.smoothscale(pg.image.load("res/cursor.png"), cursorSize)
 backGround = pg.image.load("res/bg.png")
 # RESSOURCES
-ImgRes = []
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/commu.png"), cardSize[0]))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/economie.png"), cardSize[0]))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/energie.png"), cardSize[0]))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ecologie.png"), cardSize[0]))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/industrie.png"), cardSize[0]))
-ImgRes.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize[0]))
 
-ImgRes2 = []
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/commu_double.png"), cardSize[0]))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/economie_double.png"), cardSize[0]))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/energie_double.png"), cardSize[0]))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ecologie_double.png"), cardSize[0]))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/industrie_double.png"), cardSize[0]))
-ImgRes2.append(pg.transform.smoothscale(pg.image.load("res/ingenieur.png"), cardSize[0]))
+resName = ["commu", "economie", "energie", "ecologie", "industrie", "ingenieur"]
 
 iconRes = [pg.transform.smoothscale(pg.image.load("res/icon"+str(i)+".png"), iconResSize) for i in range(5)]
 
 # BATIMENTS
+batCardsPath = "res/"
 # batiments = []
 # for i in range(160):
 # 	file = "res/batiments/"+str(i)+".png"

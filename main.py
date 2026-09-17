@@ -1,19 +1,20 @@
 import pygame as pg
-pg.init()
+import sys
+sys.path.append("../../QBYLib")
 from pointcity import *
 from startMenu import *
 from mainMenu import *
 from params import *
 from endScreen import *
 
+
 def main():
 
+	pg.init()
 	# setup
 	screen = pg.display.set_mode(screenSize, pg.SCALED | pg.FULLSCREEN)
 	clock = pg.time.Clock()
 	pg.display.set_caption('Show Text')
-	screen.fill(backgroundColor)
-	pg.display.flip()
 	pg.mouse.set_cursor(pg.cursors.Cursor(cursorHotspot, cursorImg))
 
 	running = True

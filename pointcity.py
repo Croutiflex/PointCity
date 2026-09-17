@@ -7,8 +7,14 @@ from market import *
 from inventory import *
 from popup import *
 from endScreen import *
+from cards import *
+
 
 class PointCityGame:
+
+	font1 = pg.font.Font('freesansbold.ttf', fontsize1)
+	font2 = pg.font.Font('freesansbold.ttf', fontsize2)
+	
 	def __init__(self, screen, isLoadedGame, *, saveSlot=1, nPlayers=1, cheatMode=False, avatars=None):
 		self.screen = screen
 		self.cheatMode = cheatMode
@@ -157,9 +163,7 @@ class PointCityGame:
 			random.shuffle(tier3cards)
 			gameMatos = matos[nPlayers-1]
 			cards = tier1cards[:gameMatos[0]] + tier2cards[:gameMatos[1]] + tier3cards[:gameMatos[2]]
-			self.pioche = cards[16:]
-			for c in self.pioche:
-				c.move(piochePos)
+			self.pioche = CardPile("pioche", piochePos, cards=cards[16:])
 
 			# marché
 			self.market = PointCityMarket(cards[:16], self.modeSolo)
@@ -169,7 +173,6 @@ class PointCityGame:
 			self.tokenMarket = PointCityTokenMarket(allTokens[:gameMatos[3]], self.modeSolo)
 
 		self.piocheHL = HighLightRect(white, cardSize[0][0]+2*space1, cardSize[0][1]+2*space1, pos=self.pioche[0].rect.center)
-		self.piocheGroup = pg.sprite.LayeredUpdates(self.pioche[0])
 		self.isMouseOnPioche = False
 		self.turnsLeft = 1 + int(len(self.pioche)/2)
 		self.turn = 0 # à changer
@@ -217,17 +220,6 @@ class PointCityGame:
 					f.write("\n" + str(c.Id) + "\t" + str(i+1) + "\t" + str(c.side))
 		f.close()
 		print("Partie sauvegardée! (", slot,")")
-
-	def piocher(self):
-		card = self.pioche[0]
-		self.piocheGroup.remove(card)
-		self.pioche = self.pioche[1:]
-		if self.pioche:
-			self.piocheGroup.add(self.pioche[0])
-		return card
-
-	def pressTab(self): # obsolete
-		self.saveGame(self.nPlayers)
 
 	def leftClick(self):
 		if self.over:
@@ -635,7 +627,7 @@ class PointCityGame:
 		if self.isMouseOnPioche and self.gamePhase == GPhase.MARKET and len(self.market.selectedCards) == 0:
 			self.piocheHL.draw(screen)
 		if self.pioche:
-			self.pioche[0].draw(screen)
+			self.pioche.draw(screen)
 		pText = self.piocheText.render(str(len(self.pioche)), True, textColor, backgroundColor)
 		screen.blit(pText, pText.get_rect().move(piocheTextPos))
 		# jetons
