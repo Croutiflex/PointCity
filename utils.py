@@ -14,6 +14,9 @@ class BasicSprite(pg.sprite.Sprite):
 		self.rect.topleft = pos
 	def draw(self,screen):
 		screen.blit(self.image, self.rect)
+	# renvoie une copie simplifliée de n'importe quel sprite
+	def basicCopy(self, pos):
+		return BasicSprite(self.image, pos=self.rect.topleft)
 
 class HighLightRect(BasicSprite):
 	def __init__(self,color,width,height,layer=-1,pos=(0,0)):

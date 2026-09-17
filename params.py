@@ -78,7 +78,6 @@ piocheTextPos = (piochePos[0] + cardSize1[0] + space2, piochePos[1])
 tkMarketPos = (piochePos[0], piochePos[1] + cardSize1[1] + space2)
 tokenD1 = (screenSize[1]-2*space3-space2-6*space1-cardH)/7
 tokenSize1 = (tokenD1, tokenD1)
-TKR = space1 + tokenD1/2
 
 # inventaires
 PIx = piochePos[0] + tokenD1*2 + space1 + space3

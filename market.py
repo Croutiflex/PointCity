@@ -37,6 +37,7 @@ class PointCityMarket:
 
 		self.greenHL = pg.sprite.RenderPlain(self.cards)
 		self.updateFlip()
+		print("fin init market")
 
 	def goToNewTurn(self):
 		if self.modeSolo:
@@ -46,6 +47,7 @@ class PointCityMarket:
 			self.gamePhase = GPhase.DISCOVER
 		else:
 			self.gamePhase = GPhase.MARKET
+		return self.gamePhase
 
 	def endMarketPhase(self):
 		self.drawables.remove([self.cards[i] for i in self.selectedCards])
@@ -114,36 +116,31 @@ class PointCityMarket:
 		self.drawables.add(card)
 
 	def updateFlip(self):
-		# horizontally
-		for i in range(4):
-			v = True
-			for j in range(4):
-				if self.cards[i//4 + j].side == BATIMENT:
-					v = False
-					break
-			for k in range(4):
-			 	self.cards[i//4 + k].canFlip = v
-		# vertically
-		for j in range(4):
-			v = True
-			for i in range(4):
-				if self.cards[i//4 + j].side == BATIMENT:
-					v = False
-					break
-			for k in range(4):
-			 	self.cards[k//4 + j].canFlip = v or self.cards[k//4 + j].canFlip
-		# update green HL
 		self.greenHL.empty()
-		for c in self.cards:
-			if c.canFlip:
-				self.greenHL.add(HighLightRect(green, w, h, layer=0,pos=c.rect.center))
+		canFlipLine = [True for i in range(4)]
+		for i in range(4):
+			# print("ligne ", i)
+			# print([c.side for c in self.cards[i*4:(i+1)*4]])
+			for j in range(i*4, (i+1)*4): # ligne i
+				if self.cards[j].side == BATIMENT:
+					canFlipLine[i] = False
+					break
+		canFlipCol = [True for i in range(4)]
+		for j in range(4):
+			# print("colonne ", i)
+			for i in range(4): # col i
+				if self.cards[i*4+j].side == BATIMENT:
+					canFlipCol[j] = False
+					break
+		for i in range(4):
+			for j in range(4):
+				self.cards[i*4+j].canFlip = canFlipLine[i] or canFlipCol[j]
+				if self.cards[i*4+j].canFlip:
+					self.greenHL.add(HighLightRect(green, w, h, pos=self.cards[i*4+j].rect.center))
 
 	# can we flip a card?
 	def canFlip(self):
-		for card in self.cards:
-			if card.canFlip:
-				return True
-		return False
+		return len(self.greenHL) > 0
 
 	def moveAutomaCards(self):
 		for x in range(2):

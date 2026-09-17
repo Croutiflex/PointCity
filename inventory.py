@@ -5,12 +5,10 @@ import math
 import random
 
 class PointCityPlayerInventory:
-	def __init__(self, screen, Id, pos, avatar=-1, newGame=True):
-		self.screen = screen
+	def __init__(self, Id, pos, avatar=-1, newGame=True):
 		self.pos = pos
 		self.isAutoma = avatar == -1
 		self.avatarNr = avatar
-		self.avatar = pg.transform.smoothscale(avatarImg[avatar], avatarSize1)
 		self.resCards = []
 		self.batCards = [[] for i in range(5)]
 		self.production = [0 for i in range(5)]
@@ -19,6 +17,7 @@ class PointCityPlayerInventory:
 		self.tokens = []
 		self.Id = Id
 		self.score = 0
+		self.drawables = pg.sprite.OrderedUpdates()
 		self.tokenPosL = []
 		self.tokenPosl = [[] for i in range(3)]
 		self.handPosL = []
@@ -280,3 +279,34 @@ class PointCityPlayerInventory:
 			rect = pText.get_rect()
 			rect.center = pointBubbleCenter[self.pos-1]
 			self.screen.blit(pText, rect)
+
+	def draw(self, screen, isMarketPhase=False):
+		if isMarketPhase and self.pos == 0 and handRect.collidepoint(pg.mouse.get_pos()):
+			screen.fill(white, handRect)
+		self.drawables.draw(screen)
+
+class PointCityPlayerInvL(): # inventaire détaillé
+	def __init__(self, Id, avatar, hand, batiments, tokens):
+		self.drawables = pg.sprite.OrderedUpdates()
+		# cadre
+		back = HighLightRect(playerColors[Id], PIL, PIH)
+		back.move((PIx, space3))
+		self.drawables.add(back)
+		# nom du joueur
+		self.drawables.add(BasicSprite(playerTitleImg[Id], pos=(titlePos[0])))
+		# avatar
+		self.screen.blit(self.avatar, avatarPos)
+		self.avatar = pg.transform.smoothscale(avatarImg[avatar], avatarSize1)
+		# main
+		self.hand = hand
+		for c in self.hand:
+		# ressources
+		self.resBats = [c for c in batiments if c.type == "ressource"]
+		# bat. muni
+		self.muniBats = [c for c in batiments if c.type == "municipal"]
+		# bat. à points
+		self.pointsBats = [c for c in batiments if c.type == "points"]
+		# jetons
+		self.tokens = tokens
+
+class PointCityPlayerInvS(): # inventaire réduit

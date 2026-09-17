@@ -84,7 +84,7 @@ class PointCityGame:
 			Id = self.currentPlayer
 			print("au tour du joueur ", self.currentPlayer+1)
 			for pos in range(self.nPlayers):
-				self.playerInventory.append(PointCityPlayerInventory(screen, Id, pos, avatars[Id], False))
+				self.playerInventory.append(PointCityPlayerInventory(Id, pos, avatars[Id], False))
 				Id += 1
 				if Id == self.nPlayers:
 					Id = 0
@@ -145,7 +145,7 @@ class PointCityGame:
 			# if avatars == None:
 			# 	avatars = random.sample(range(8), k=self.nPlayers)
 			for pos in range(self.nPlayers):
-				self.playerInventory.append(PointCityPlayerInventory(screen, Id, pos, avatars[Id]))
+				self.playerInventory.append(PointCityPlayerInventory(Id, pos, avatars[Id]))
 				Id += 1
 				if Id == self.nPlayers:
 					Id = 0
@@ -166,7 +166,7 @@ class PointCityGame:
 
 			# inventaire des jetons
 			random.shuffle(allTokens)
-			self.tokenMarket = PointCityTokenMarket(screen, allTokens[:gameMatos[3]], self.modeSolo)
+			self.tokenMarket = PointCityTokenMarket(allTokens[:gameMatos[3]], self.modeSolo)
 
 		self.piocheHL = HighLightRect(white, cardSize[0][0]+2*space1, cardSize[0][1]+2*space1, pos=self.pioche[0].rect.center)
 		self.piocheGroup = pg.sprite.LayeredUpdates(self.pioche[0])
@@ -252,16 +252,14 @@ class PointCityGame:
 					self.endTurn()
 					return
 				tk = self.tokenMarket.getToken()
-				tkpos = self.tokenMarket.findToken()
 				if tk != None:
-					tk.resize(2)
 					def f():
+						tk.resize(2)
 						self.playerInventory[self.currentPlayer].addToken(tk)
 						self.tokensLeft -= 1
 						if self.tokensLeft == 0:
 							self.endTurn()
-					pos = self.playerInventory[self.currentPlayer].updateTokenPos()
-					# self.translationsPJ.append(translation(self.screen, tk.getImage(), self.tokenMarket.tokenPos[tkpos], pos, f))
+					tk.animate(self.playerInventory[self.currentPlayer].updateTokenPos(), resize=tokenD2/tokenD1, onDone=f)
 
 	def directDraw(self):
 		card1 = self.piocher()
@@ -405,10 +403,13 @@ class PointCityGame:
 				if c.type == "municipal":
 					municipalDrawn += 1
 
+		dontSlideMarketRes = False
 		if batDrawn:
 			(payOK, costLeft, marketResUsed) = self.checkPayment(selectedCards)
 			# print("checkPayment; ", payOK, costLeft, marketResUsed)
 			if payOK: 															# si achat possible
+				if marketResUsed != None:
+					dontSlideMarketRes = True
 				self.makePayment(costLeft, marketResUsed)
 			else:
 				self.market.failedBuy()
@@ -426,6 +427,7 @@ class PointCityGame:
 			if municipalDrawn > 0:
 				self.tokensLeft = municipalDrawn
 				self.gamePhase = GPhase.TOKEN
+				self.tokenMarket.tokenPhase = True
 			else:
 				self.endTurn()
 
@@ -444,6 +446,7 @@ class PointCityGame:
 				if municipalDrawn > 0:
 					self.tokensLeft = municipalDrawn
 					self.gamePhase = GPhase.TOKEN
+					self.tokenMarket.tokenPhase = True
 				else:
 					self.endTurn()
 			else:
@@ -458,7 +461,10 @@ class PointCityGame:
 		for c in selectedCards:
 			f = f1 if i == 0 else f2
 			if c.side == RESSOURCE: # si carte ressource du marché non utilisée pour l'achat
-				if marketResUsed == None or marketResUsed != c: 
+				if dontSlideMarketRes:
+					if c != marketResUsed:
+						c.animate(handPosL, resize=cardH2/cardH, onDone=f)
+				else:
 					c.animate(handPosL, resize=cardH2/cardH, onDone=f)
 			else:
 				pos = muniPosL
@@ -476,8 +482,7 @@ class PointCityGame:
 		match self.gamePhase:
 			case GPhase.DISCOVER:
 				self.gamePhase = GPhase.MARKET
-				self.market.draw(GPhase.MARKET)
-				self.tokenMarket.draw(self.gamePhase == GPhase.TOKEN)
+				self.market.gamePhase = GPhase.MARKET
 			case GPhase.MARKET:
 				self.market.cancelSelect()
 
@@ -586,10 +591,8 @@ class PointCityGame:
 		print("Joueur ", str(self.currentPlayer + 1))
 		for p in self.playerInventory:
 			p.endTurn(self.nPlayers)
-		if self.market.canFlip():
-			self.gamePhase = GPhase.DISCOVER
-		else:
-			self.gamePhase = GPhase.MARKET
+		self.gamePhase = self.market.goToNewTurn()
+		self.tokenMarket.tokenPhase = False
 
 		self.newTurnPopup.setNextPlayer(self.playerInventory[self.currentPlayer].avatar, self.currentPlayer)
 		self.newTurnPopup.on = True
@@ -652,7 +655,7 @@ class PointCityGame:
 
 		# marché, jetons & joueurs
 		self.market.draw(self.screen)
-		self.tokenMarket.draw(self.screen, self.gamePhase == GPhase.TOKEN)
+		self.tokenMarket.draw(self.screen)
 		for p in self.playerInventory:
 			p.draw(self.screen, self.gamePhase == GPhase.MARKET)
 

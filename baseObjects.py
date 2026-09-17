@@ -5,7 +5,6 @@ import os
 
 class PointCityCard(SpriteWithTL):
 	def __init__(self, tier, ressource, type, cost, value, Id, pos=(0,0)):
-		pg.sprite.Sprite.__init__(self)
 		# constant
 		self.Id = Id
 		self.tier = tier
@@ -24,8 +23,7 @@ class PointCityCard(SpriteWithTL):
 			self.imageBat = pg.image.load("res/batiments/dummy.png")
 		self.side = RESSOURCE
 		self.canFlip = True
-		self.image = pg.transform.smoothscale(self.imageRes, cardSize[0])
-		self.rect = self.image.get_rect(x=pos[0], y=pos[1])
+		super().__init__(pg.transform.smoothscale(self.imageRes, cardSize[0]), pos=pos)
 
 	def __str__(self):
 		return str(self.ressource)
@@ -37,6 +35,7 @@ class PointCityCard(SpriteWithTL):
 	def flip(self):
 		if self.canFlip:
 			self.side = BATIMENT
+			self.canFlip = False
 			self.image = pg.transform.smoothscale(self.imageBat, cardSize[0])
 			return True
 		return False
@@ -47,20 +46,15 @@ class PointCityCard(SpriteWithTL):
 		self.rect = self.image.get_rect(x = self.rect.x, y = self.rect.y)
 
 class PointCityToken(SpriteWithTL):
-	def __init__(self, type, info, Id, pos = (0,0)):
-		pg.sprite.Sprite.__init__(self)
+	def __init__(self, type, info, Id, pos=(0,0)):
 		self.Id = Id
 		self.type = type
 		self.info = info
 		self.size = 0
-		self.image = pg.transform.smoothscale(pg.image.load("res/jetons/"+str(Id)+".png"), tokenSize[0])
-		self.rect = self.image.get_rect(x = pos[0], y = pos[1])
+		self.refImg = pg.image.load("res/jetons/"+str(Id)+".png")
+		super().__init__(pg.transform.smoothscale(self.refImg, tokenSize[0]))
 
 	def resize(self, size):
 		self.size = size
-		self.image = pg.transform.smoothscale(self.image, tokenSize[size])
+		self.image = pg.transform.smoothscale(self.refImg, tokenSize[size])
 		self.rect = self.image.get_rect(x = self.rect.x, y = self.rect.y)
-
-	def move(x,y):
-		self.rect.x = x
-		self.rect.y = y
